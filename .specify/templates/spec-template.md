@@ -100,6 +100,22 @@
 - **[Entity 1]**: [What it represents, key attributes without implementation]
 - **[Entity 2]**: [What it represents, relationships to other entities]
 
+### Security Requirements *(mandatory for features with authentication/authorization)*
+
+- **SEC-001**: Authentication method: [JWT/OAuth/etc.]
+- **SEC-002**: Authorization: Which roles can access this feature? [Master only / User only / Both]
+- **SEC-003**: Input validation: List all user inputs requiring sanitization
+- **SEC-004**: Sensitive data: Does feature handle passwords, tokens, PII? If yes, document protection measures
+- **SEC-005**: Rate limiting: Does feature need protection against abuse? [Yes/No, specify limits]
+
+### Resource Constraints *(mandatory for features with performance impact)*
+
+- **RES-001**: Database queries: Expected query complexity and volume
+- **RES-002**: Memory usage: Estimated RAM requirements for this feature
+- **RES-003**: API response time: Target latency (must be <200ms p95 for read operations)
+- **RES-004**: Concurrent users: Expected simultaneous usage
+- **RES-005**: Storage: Estimated data growth over time
+
 ## Success Criteria *(mandatory)*
 
 <!--

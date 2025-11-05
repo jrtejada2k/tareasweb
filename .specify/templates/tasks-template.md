@@ -48,9 +48,15 @@ description: "Task list template for feature implementation"
 
 **Purpose**: Project initialization and basic structure
 
-- [ ] T001 Create project structure per implementation plan
+- [ ] T001 Create project structure per implementation plan (backend/, frontend/, database/)
 - [ ] T002 Initialize [language] project with [framework] dependencies
-- [ ] T003 [P] Configure linting and formatting tools
+- [ ] T003 [P] Configure linting and formatting tools (ESLint, Prettier)
+- [ ] T004 [P] Setup Docker Compose with services: backend, frontend, database, reverse-proxy
+- [ ] T005 [P] Configure Dockerfile for backend (Node.js Alpine base image)
+- [ ] T006 [P] Configure Dockerfile for frontend (multi-stage build with Nginx Alpine)
+- [ ] T007 Configure PostgreSQL container with memory limits and health checks
+- [ ] T008 Configure Nginx reverse proxy with SSL/TLS (Let's Encrypt placeholder)
+- [ ] T009 Setup environment variables and Docker secrets management
 
 ---
 
@@ -62,7 +68,17 @@ description: "Task list template for feature implementation"
 
 Examples of foundational tasks (adjust based on your project):
 
-- [ ] T004 Setup database schema and migrations framework
+- [ ] T010 Setup database schema and migrations framework
+- [ ] T011 Implement JWT authentication middleware (token validation, role extraction)
+- [ ] T012 Implement bcrypt password hashing utilities (cost factor 10-12)
+- [ ] T013 [P] Implement RBAC authorization middleware (Master vs User role checks)
+- [ ] T014 [P] Setup input validation framework (Joi for backend, Yup for frontend)
+- [ ] T015 [P] Configure rate limiting middleware (express-rate-limit for auth endpoints)
+- [ ] T016 Implement error handling middleware (structured error responses, logging)
+- [ ] T017 Setup logging infrastructure (Winston or similar, JSON format, daily rotation)
+- [ ] T018 [P] Create health check endpoints (/health, /ready) for all services
+- [ ] T019 Configure CORS and security headers (helmet.js)
+- [ ] T020 Setup database connection pooling (max 20 connections)
 - [ ] T005 [P] Implement authentication/authorization framework
 - [ ] T006 [P] Setup API routing and middleware structure
 - [ ] T007 Create base models/entities that all stories depend on

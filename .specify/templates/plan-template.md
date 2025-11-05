@@ -31,7 +31,17 @@
 
 *GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
 
-[Gates determined based on constitution file]
+**Verify compliance with TasksWeb Constitution principles**:
+
+- [ ] **Security-First**: Does feature implement JWT auth, input validation, RBAC checks, HTTPS?
+- [ ] **Resource-Constrained**: Does feature respect 1GB RAM limit, use Alpine images, optimize queries?
+- [ ] **RBAC Enforcement**: Does feature properly distinguish Master vs User role capabilities?
+- [ ] **API-First Design**: Are all features exposed via documented REST endpoints with proper versioning?
+- [ ] **Docker-Native**: Can feature be deployed via Docker Compose with health checks?
+- [ ] **Input Validation**: Does feature validate inputs on frontend AND backend with clear error messages?
+- [ ] **Observability**: Does feature include logging, monitoring, and business alerts where applicable?
+
+**Complexity Justification** (if any gates fail): [Document trade-offs and mitigation plan]
 
 ## Project Structure
 
