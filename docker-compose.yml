@@ -11,7 +11,7 @@ services:
     environment:
       POSTGRES_DB: ${POSTGRES_DB:-tareasweb}
       POSTGRES_USER: ${POSTGRES_USER:-tareasweb_user}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Database password required}
+      POSTGRES_PASSWORD: Clodomiro2017Random
       POSTGRES_INITDB_ARGS: "-E UTF8 --locale=en_US.utf8"
       # Optimize for 1GB RAM VPS
       POSTGRES_SHARED_BUFFERS: 128MB
@@ -21,7 +21,13 @@ services:
       POSTGRES_MAX_CONNECTIONS: 20
     volumes:
       - postgres_data:/var/lib/postgresql/data
+      - postgres_logs:/var/log/postgresql
       - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+      - ./database/postgresql.conf:/etc/postgresql/postgresql.conf:ro
+      - ./database/pg_hba.conf:/etc/postgresql/pg_hba.conf:ro
+    command: postgres -c config_file=/etc/postgresql/postgresql.conf -c hba_file=/etc/postgresql/pg_hba.conf
+    ports:
+      - "5432:5432"
     networks:
       - tareasweb-network
     healthcheck:
@@ -179,6 +185,8 @@ networks:
 # ============================================
 volumes:
   postgres_data:
+    driver: local
+  postgres_logs:
     driver: local
   backend_logs:
     driver: local

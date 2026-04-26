@@ -1,0 +1,39 @@
+# Node.js
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Build output
+dist/
+
+# Tests
+tests/
+*.test.ts
+*.spec.ts
+coverage/
+
+# Development files
+.git/
+.gitignore
+.env*
+!.env.example
+
+# Documentation
+README.md
+*.md
+docs/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+
+# Logs
+logs/
+*.log
+
+# TypeScript
+*.tsbuildinfo

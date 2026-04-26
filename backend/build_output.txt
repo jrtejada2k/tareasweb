@@ -1,0 +1,178 @@
+
+> tareasweb-backend@1.0.0 build
+> tsc
+
+src/app.ts(26,25): error TS4111: Property 'CORS_ORIGIN' comes from an index signature, so it must be accessed with ['CORS_ORIGIN'].
+src/app.ts(62,29): error TS6133: 'req' is declared but its value is never read.
+src/app.ts(108,20): error TS6133: 'req' is declared but its value is never read.
+src/controllers/authController.ts(7,29): error TS6133: 'NextFunction' is declared but its value is never read.
+src/controllers/authController.ts(17,1): error TS6133: 'logger' is declared but its value is never read.
+src/controllers/authController.ts(33,5): error TS2322: Type '"master" | "user"' is not assignable to type 'UserRole'.
+  Type '"master"' is not assignable to type 'UserRole'.
+src/controllers/authController.ts(59,25): error TS4111: Property 'NODE_ENV' comes from an index signature, so it must be accessed with ['NODE_ENV'].
+src/controllers/authController.ts(66,25): error TS4111: Property 'NODE_ENV' comes from an index signature, so it must be accessed with ['NODE_ENV'].
+src/controllers/authController.ts(76,5): error TS2322: Type '"master" | "user"' is not assignable to type 'UserRole'.
+  Type '"master"' is not assignable to type 'UserRole'.
+src/controllers/authController.ts(96,37): error TS4111: Property 'refreshToken' comes from an index signature, so it must be accessed with ['refreshToken'].
+src/controllers/authController.ts(114,25): error TS4111: Property 'NODE_ENV' comes from an index signature, so it must be accessed with ['NODE_ENV'].
+src/controllers/authController.ts(131,37): error TS4111: Property 'refreshToken' comes from an index signature, so it must be accessed with ['refreshToken'].
+src/controllers/authController.ts(172,5): error TS2322: Type '"master" | "user"' is not assignable to type 'UserRole'.
+  Type '"master"' is not assignable to type 'UserRole'.
+src/controllers/projectController.ts(29,1): error TS6133: 'logger' is declared but its value is never read.
+src/controllers/projectController.ts(68,32): error TS4111: Property 'id' comes from an index signature, so it must be accessed with ['id'].
+src/controllers/projectController.ts(72,39): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+src/controllers/projectController.ts(100,32): error TS4111: Property 'id' comes from an index signature, so it must be accessed with ['id'].
+src/controllers/projectController.ts(103,23): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+src/controllers/projectController.ts(117,32): error TS4111: Property 'id' comes from an index signature, so it must be accessed with ['id'].
+src/controllers/projectController.ts(120,34): error TS4111: Property 'include_tasks' comes from an index signature, so it must be accessed with ['include_tasks'].
+src/controllers/projectController.ts(125,41): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+src/controllers/projectController.ts(127,36): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+src/controllers/projectController.ts(161,35): error TS4111: Property 'page' comes from an index signature, so it must be accessed with ['page'].
+src/controllers/projectController.ts(162,36): error TS4111: Property 'limit' comes from an index signature, so it must be accessed with ['limit'].
+src/controllers/projectController.ts(163,28): error TS4111: Property 'status' comes from an index signature, so it must be accessed with ['status'].
+src/controllers/projectController.ts(208,48): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+src/controllers/projectController.ts(233,31): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+src/controllers/projectController.ts(249,55): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+src/controllers/taskController.ts(31,1): error TS6133: 'logger' is declared but its value is never read.
+src/controllers/taskController.ts(77,29): error TS4111: Property 'id' comes from an index signature, so it must be accessed with ['id'].
+src/controllers/taskController.ts(121,39): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+src/controllers/taskController.ts(156,29): error TS4111: Property 'id' comes from an index signature, so it must be accessed with ['id'].
+src/controllers/taskController.ts(173,29): error TS4111: Property 'id' comes from an index signature, so it must be accessed with ['id'].
+src/controllers/taskController.ts(176,37): error TS4111: Property 'include_subtasks' comes from an index signature, so it must be accessed with ['include_subtasks'].
+src/controllers/taskController.ts(250,35): error TS4111: Property 'page' comes from an index signature, so it must be accessed with ['page'].
+src/controllers/taskController.ts(251,36): error TS4111: Property 'limit' comes from an index signature, so it must be accessed with ['limit'].
+src/controllers/taskController.ts(255,27): error TS4111: Property 'project_id' comes from an index signature, so it must be accessed with ['project_id'].
+src/controllers/taskController.ts(256,31): error TS4111: Property 'parent_task_id' comes from an index signature, so it must be accessed with ['parent_task_id'].
+src/controllers/taskController.ts(257,23): error TS4111: Property 'status' comes from an index signature, so it must be accessed with ['status'].
+src/controllers/taskController.ts(258,25): error TS4111: Property 'priority' comes from an index signature, so it must be accessed with ['priority'].
+src/controllers/taskController.ts(259,33): error TS4111: Property 'assigned_user_id' comes from an index signature, so it must be accessed with ['assigned_user_id'].
+src/controllers/taskController.ts(260,31): error TS4111: Property 'assigned_to_me' comes from an index signature, so it must be accessed with ['assigned_to_me'].
+src/controllers/taskController.ts(261,32): error TS4111: Property 'start_date_from' comes from an index signature, so it must be accessed with ['start_date_from'].
+src/controllers/taskController.ts(262,30): error TS4111: Property 'start_date_to' comes from an index signature, so it must be accessed with ['start_date_to'].
+src/controllers/taskController.ts(263,30): error TS4111: Property 'end_date_from' comes from an index signature, so it must be accessed with ['end_date_from'].
+src/controllers/taskController.ts(264,28): error TS4111: Property 'end_date_to' comes from an index signature, so it must be accessed with ['end_date_to'].
+src/controllers/taskController.ts(265,23): error TS4111: Property 'search' comes from an index signature, so it must be accessed with ['search'].
+src/controllers/taskController.ts(311,45): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+src/controllers/taskController.ts(336,28): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+src/controllers/taskController.ts(352,52): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+src/middleware/authMiddleware.ts(26,20): error TS4111: Property 'accessToken' comes from an index signature, so it must be accessed with ['accessToken'].
+src/middleware/authMiddleware.ts(27,24): error TS4111: Property 'accessToken' comes from an index signature, so it must be accessed with ['accessToken'].
+src/middleware/authMiddleware.ts(109,3): error TS6133: 'res' is declared but its value is never read.
+src/middleware/errorMiddleware.ts(76,3): error TS6133: 'next' is declared but its value is never read.
+src/middleware/errorMiddleware.ts(107,21): error TS4111: Property 'NODE_ENV' comes from an index signature, so it must be accessed with ['NODE_ENV'].
+src/middleware/errorMiddleware.ts(153,23): error TS4111: Property 'NODE_ENV' comes from an index signature, so it must be accessed with ['NODE_ENV'].
+src/middleware/rateLimitMiddleware.ts(16,34): error TS4111: Property 'RATE_LIMIT_WINDOW_MS' comes from an index signature, so it must be accessed with ['RATE_LIMIT_WINDOW_MS'].
+src/middleware/rateLimitMiddleware.ts(17,29): error TS4111: Property 'RATE_LIMIT_MAX_LOGIN' comes from an index signature, so it must be accessed with ['RATE_LIMIT_MAX_LOGIN'].
+src/middleware/rateLimitMiddleware.ts(40,10): error TS6133: 'req' is declared but its value is never read.
+src/middleware/rateLimitMiddleware.ts(42,24): error TS4111: Property 'NODE_ENV' comes from an index signature, so it must be accessed with ['NODE_ENV'].
+src/middleware/rateLimitMiddleware.ts(52,29): error TS4111: Property 'RATE_LIMIT_MAX_REGISTER' comes from an index signature, so it must be accessed with ['RATE_LIMIT_MAX_REGISTER'].
+src/middleware/rateLimitMiddleware.ts(75,10): error TS6133: 'req' is declared but its value is never read.
+src/middleware/rateLimitMiddleware.ts(76,24): error TS4111: Property 'NODE_ENV' comes from an index signature, so it must be accessed with ['NODE_ENV'].
+src/middleware/rateLimitMiddleware.ts(85,34): error TS4111: Property 'RATE_LIMIT_WINDOW_MS' comes from an index signature, so it must be accessed with ['RATE_LIMIT_WINDOW_MS'].
+src/middleware/rateLimitMiddleware.ts(86,29): error TS4111: Property 'RATE_LIMIT_MAX_API' comes from an index signature, so it must be accessed with ['RATE_LIMIT_MAX_API'].
+src/middleware/rateLimitMiddleware.ts(110,10): error TS6133: 'req' is declared but its value is never read.
+src/middleware/rateLimitMiddleware.ts(111,24): error TS4111: Property 'NODE_ENV' comes from an index signature, so it must be accessed with ['NODE_ENV'].
+src/middleware/rateLimitMiddleware.ts(149,10): error TS6133: 'req' is declared but its value is never read.
+src/middleware/rateLimitMiddleware.ts(150,24): error TS4111: Property 'NODE_ENV' comes from an index signature, so it must be accessed with ['NODE_ENV'].
+src/middleware/rateLimitMiddleware.ts(194,12): error TS6133: 'req' is declared but its value is never read.
+src/middleware/rateLimitMiddleware.ts(195,26): error TS4111: Property 'NODE_ENV' comes from an index signature, so it must be accessed with ['NODE_ENV'].
+src/server.ts(18,35): error TS4111: Property 'API_PORT' comes from an index signature, so it must be accessed with ['API_PORT'].
+src/server.ts(19,26): error TS4111: Property 'API_HOST' comes from an index signature, so it must be accessed with ['API_HOST'].
+src/server.ts(50,47): error TS4111: Property 'NODE_ENV' comes from an index signature, so it must be accessed with ['NODE_ENV'].
+src/services/assignmentService.ts(15,40): error TS6133: 'ForbiddenError' is declared but its value is never read.
+src/services/assignmentService.ts(89,5): error TS2322: Type 'ProjectAssignment | undefined' is not assignable to type 'ProjectAssignment'.
+  Type 'undefined' is not assignable to type 'ProjectAssignment'.
+src/services/authService.ts(7,17): error TS6133: 'transaction' is declared but its value is never read.
+src/services/authService.ts(12,1): error TS6133: 'CreateRefreshTokenData' is declared but its value is never read.
+src/services/authService.ts(13,51): error TS6137: Cannot import type declaration files. Consider importing 'user.types' instead of '@types/user.types'.
+src/services/authService.ts(91,10): error TS18048: 'user' is possibly 'undefined'.
+src/services/authService.ts(96,66): error TS18048: 'user' is possibly 'undefined'.
+src/services/authService.ts(103,15): error TS18048: 'user' is possibly 'undefined'.
+src/services/authService.ts(104,14): error TS18048: 'user' is possibly 'undefined'.
+src/services/authService.ts(105,13): error TS18048: 'user' is possibly 'undefined'.
+src/services/authService.ts(119,8): error TS18048: 'user' is possibly 'undefined'.
+src/services/authService.ts(125,8): error TS18048: 'user' is possibly 'undefined'.
+src/services/authService.ts(129,15): error TS18048: 'user' is possibly 'undefined'.
+src/services/authService.ts(130,14): error TS18048: 'user' is possibly 'undefined'.
+src/services/authService.ts(134,24): error TS2345: Argument of type '{ last_login_at: Date; id?: string | undefined; email?: string | undefined; password_hash?: string | undefined; full_name?: string | undefined; role?: "master" | "user" | undefined; is_active?: boolean | undefined; created_at?: Date | undefined; updated_at?: Date | undefined; }' is not assignable to parameter of type 'User'.
+  Types of property 'id' are incompatible.
+    Type 'string | undefined' is not assignable to type 'string'.
+      Type 'undefined' is not assignable to type 'string'.
+src/services/authService.ts(182,15): error TS18048: 'user' is possibly 'undefined'.
+src/services/authService.ts(183,14): error TS18048: 'user' is possibly 'undefined'.
+src/services/authService.ts(184,13): error TS18048: 'user' is possibly 'undefined'.
+src/services/authService.ts(187,53): error TS18048: 'user' is possibly 'undefined'.
+src/services/authService.ts(237,23): error TS2345: Argument of type 'User | undefined' is not assignable to parameter of type 'User'.
+  Type 'undefined' is not assignable to type 'User'.
+src/services/notificationService.ts(40,5): error TS2322: Type 'Notification | undefined' is not assignable to type 'Notification'.
+  Type 'undefined' is not assignable to type 'Notification'.
+src/services/projectService.ts(54,18): error TS18048: 'project' is possibly 'undefined'.
+src/services/projectService.ts(55,13): error TS18048: 'project' is possibly 'undefined'.
+src/services/projectService.ts(59,5): error TS2322: Type 'Project | undefined' is not assignable to type 'Project'.
+  Type 'undefined' is not assignable to type 'Project'.
+src/services/projectService.ts(131,18): error TS18048: 'project' is possibly 'undefined'.
+src/services/projectService.ts(135,5): error TS2322: Type 'Project | undefined' is not assignable to type 'Project'.
+  Type 'undefined' is not assignable to type 'Project'.
+src/services/projectService.ts(216,5): error TS2322: Type 'Project | undefined' is not assignable to type 'Project'.
+  Type 'undefined' is not assignable to type 'Project'.
+src/services/taskService.ts(113,5): error TS2322: Type 'Task | undefined' is not assignable to type 'Task'.
+  Type 'undefined' is not assignable to type 'Task'.
+src/services/taskService.ts(184,5): error TS2322: Type 'Task | undefined' is not assignable to type 'Task'.
+  Type 'undefined' is not assignable to type 'Task'.
+src/services/taskService.ts(264,5): error TS2322: Type 'Task | undefined' is not assignable to type 'Task'.
+  Type 'undefined' is not assignable to type 'Task'.
+src/services/taskService.ts(550,5): error TS2322: Type 'Task | undefined' is not assignable to type 'Task'.
+  Type 'undefined' is not assignable to type 'Task'.
+src/utils/bcrypt.ts(12,44): error TS4111: Property 'BCRYPT_ROUNDS' comes from an index signature, so it must be accessed with ['BCRYPT_ROUNDS'].
+src/utils/database.ts(13,21): error TS4111: Property 'POSTGRES_HOST' comes from an index signature, so it must be accessed with ['POSTGRES_HOST'].
+src/utils/database.ts(14,30): error TS4111: Property 'POSTGRES_PORT' comes from an index signature, so it must be accessed with ['POSTGRES_PORT'].
+src/utils/database.ts(15,25): error TS4111: Property 'POSTGRES_DB' comes from an index signature, so it must be accessed with ['POSTGRES_DB'].
+src/utils/database.ts(16,21): error TS4111: Property 'POSTGRES_USER' comes from an index signature, so it must be accessed with ['POSTGRES_USER'].
+src/utils/database.ts(17,25): error TS4111: Property 'POSTGRES_PASSWORD' comes from an index signature, so it must be accessed with ['POSTGRES_PASSWORD'].
+src/utils/database.ts(18,29): error TS4111: Property 'DATABASE_POOL_MAX' comes from an index signature, so it must be accessed with ['DATABASE_POOL_MAX'].
+src/utils/database.ts(19,29): error TS4111: Property 'DATABASE_POOL_MIN' comes from an index signature, so it must be accessed with ['DATABASE_POOL_MIN'].
+src/utils/emailService.ts(21,32): error TS4111: Property 'SMTP_HOST' comes from an index signature, so it must be accessed with ['SMTP_HOST'].
+src/utils/emailService.ts(22,41): error TS4111: Property 'SMTP_PORT' comes from an index signature, so it must be accessed with ['SMTP_PORT'].
+src/utils/emailService.ts(23,32): error TS4111: Property 'SMTP_USER' comes from an index signature, so it must be accessed with ['SMTP_USER'].
+src/utils/emailService.ts(24,32): error TS4111: Property 'SMTP_PASS' comes from an index signature, so it must be accessed with ['SMTP_PASS'].
+src/utils/emailService.ts(83,35): error TS4111: Property 'SMTP_FROM' comes from an index signature, so it must be accessed with ['SMTP_FROM'].
+src/utils/emailService.ts(83,60): error TS4111: Property 'SMTP_USER' comes from an index signature, so it must be accessed with ['SMTP_USER'].
+src/utils/emailService.ts(253,32): error TS4111: Property 'SMTP_HOST' comes from an index signature, so it must be accessed with ['SMTP_HOST'].
+src/utils/emailService.ts(254,32): error TS4111: Property 'SMTP_USER' comes from an index signature, so it must be accessed with ['SMTP_USER'].
+src/utils/emailService.ts(255,32): error TS4111: Property 'SMTP_PASS' comes from an index signature, so it must be accessed with ['SMTP_PASS'].
+src/utils/jwt.ts(21,41): error TS4111: Property 'JWT_SECRET' comes from an index signature, so it must be accessed with ['JWT_SECRET'].
+src/utils/jwt.ts(22,42): error TS4111: Property 'JWT_REFRESH_SECRET' comes from an index signature, so it must be accessed with ['JWT_REFRESH_SECRET'].
+src/utils/jwt.ts(23,41): error TS4111: Property 'JWT_EXPIRES_IN' comes from an index signature, so it must be accessed with ['JWT_EXPIRES_IN'].
+src/utils/jwt.ts(24,42): error TS4111: Property 'JWT_REFRESH_EXPIRES_IN' comes from an index signature, so it must be accessed with ['JWT_REFRESH_EXPIRES_IN'].
+src/utils/jwt.ts(31,23): error TS2769: No overload matches this call.
+  Overload 1 of 5, '(payload: string | object | Buffer<ArrayBufferLike>, secretOrPrivateKey: null, options?: (SignOptions & { algorithm: "none"; }) | undefined): string', gave the following error.
+    Argument of type 'string' is not assignable to parameter of type 'null'.
+  Overload 2 of 5, '(payload: string | object | Buffer<ArrayBufferLike>, secretOrPrivateKey: Buffer<ArrayBufferLike> | Secret | PrivateKeyInput | JsonWebKeyInput, options?: SignOptions | undefined): string', gave the following error.
+    Type 'string' is not assignable to type 'number | StringValue | undefined'.
+  Overload 3 of 5, '(payload: string | object | Buffer<ArrayBufferLike>, secretOrPrivateKey: Buffer<ArrayBufferLike> | Secret | PrivateKeyInput | JsonWebKeyInput, callback: SignCallback): void', gave the following error.
+    Object literal may only specify known properties, and 'expiresIn' does not exist in type 'SignCallback'.
+src/utils/jwt.ts(46,23): error TS2769: No overload matches this call.
+  Overload 1 of 5, '(payload: string | object | Buffer<ArrayBufferLike>, secretOrPrivateKey: null, options?: (SignOptions & { algorithm: "none"; }) | undefined): string', gave the following error.
+    Argument of type 'string' is not assignable to parameter of type 'null'.
+  Overload 2 of 5, '(payload: string | object | Buffer<ArrayBufferLike>, secretOrPrivateKey: Buffer<ArrayBufferLike> | Secret | PrivateKeyInput | JsonWebKeyInput, options?: SignOptions | undefined): string', gave the following error.
+    Type 'string' is not assignable to type 'number | StringValue | undefined'.
+  Overload 3 of 5, '(payload: string | object | Buffer<ArrayBufferLike>, secretOrPrivateKey: Buffer<ArrayBufferLike> | Secret | PrivateKeyInput | JsonWebKeyInput, callback: SignCallback): void', gave the following error.
+    Object literal may only specify known properties, and 'expiresIn' does not exist in type 'SignCallback'.
+src/utils/logger.ts(33,27): error TS4111: Property 'LOG_LEVEL' comes from an index signature, so it must be accessed with ['LOG_LEVEL'].
+src/utils/logger.ts(48,23): error TS4111: Property 'timestamp' comes from an index signature, so it must be accessed with ['timestamp'].
+src/utils/logger.ts(54,35): error TS4111: Property 'LOG_DIR' comes from an index signature, so it must be accessed with ['LOG_DIR'].
+src/utils/logger.ts(64,35): error TS4111: Property 'LOG_DIR' comes from an index signature, so it must be accessed with ['LOG_DIR'].
+src/utils/logger.ts(79,27): error TS4111: Property 'NODE_ENV' comes from an index signature, so it must be accessed with ['NODE_ENV'].
+src/utils/logger.ts(88,39): error TS4111: Property 'LOG_DIR' comes from an index signature, so it must be accessed with ['LOG_DIR'].
+src/utils/logger.ts(93,39): error TS4111: Property 'LOG_DIR' comes from an index signature, so it must be accessed with ['LOG_DIR'].

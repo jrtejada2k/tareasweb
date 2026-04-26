@@ -1,0 +1,1849 @@
+openapi: 3.0.3
+info:
+  title: TasksWeb API
+  description: |
+    REST API for TasksWeb task management application with JWT authentication, 
+    role-based access control, and resource-optimized design for 1GB RAM VPS.
+    
+    ## Features
+    - JWT-based authentication with refresh tokens
+    - Role-based authorization (Master/User)
+    - Project and task hierarchy management
+    - Deadline extension requests
+    - Time tracking
+    - Real-time notifications
+    - Rate limiting and security headers
+    
+    ## Constitution Compliance
+    This API adheres to TasksWeb constitution v1.0.0 principles:
+    - Security-First: JWT + HttpOnly cookies + bcrypt
+    - Resource-Constrained: Optimized for 1GB RAM VPS
+    - RBAC: Master/User role enforcement
+    - Input Validation: Dual-layer validation (backend + frontend)
+    
+  version: 1.0.0
+  contact:
+    name: TasksWeb Development Team
+    email: dev@tasksweb.local
+  license:
+    name: Proprietary
+
+servers:
+  - url: http://localhost/api/v1
+    description: Local development server
+  - url: https://tasksweb.local/api/v1
+    description: Production server (VPS)
+
+tags:
+  - name: Authentication
+    description: User authentication and token management
+  - name: Projects
+    description: Project CRUD operations (Master only)
+  - name: Tasks
+    description: Task management with hierarchy support
+  - name: Dashboard
+    description: Dashboard views for Master and User roles
+  - name: Deadline Requests
+    description: Deadline extension request workflow
+  - name: Time Tracking
+    description: Time entry logging and reporting
+  - name: Notifications
+    description: User notifications and alerts
+  - name: Users
+    description: User management
+
+security:
+  - BearerAuth: []
+  - CookieAuth: []
+
+paths:
+  # ==================== Authentication Endpoints ====================
+  /auth/register:
+    post:
+      tags:
+        - Authentication
+      summary: Register a new user
+      description: Create a new user account with email, password, and role
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterRequest'
+            examples:
+              master:
+                summary: Register master user
+                value:
+                  email: master@example.com
+                  password: SecurePass123!
+                  full_name: Jane Master
+                  role: master
+              user:
+                summary: Register regular user
+                value:
+                  email: user@example.com
+                  password: SecurePass123!
+                  full_name: John Doe
+                  role: user
+      responses:
+        '201':
+          description: User registered successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+              example:
+                success: true
+                data:
+                  id: 123e4567-e89b-12d3-a456-426614174000
+                  email: user@example.com
+                  full_name: John Doe
+                  role: user
+                  created_at: '2025-11-04T10:30:00.000Z'
+                message: User registered successfully
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /auth/login:
+    post:
+      tags:
+        - Authentication
+      summary: Login with email and password
+      description: |
+        Authenticate user and receive JWT tokens. 
+        Rate limited to 5 attempts per 15 minutes per IP.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Login successful
+          headers:
+            Set-Cookie:
+              description: Access and refresh tokens in HttpOnly cookies
+              schema:
+                type: string
+                example: access_token=eyJhbGci...; HttpOnly; Secure; SameSite=Strict; Max-Age=900
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginResponse'
+        '401':
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                success: false
+                error:
+                  code: INVALID_CREDENTIALS
+                  message: Invalid email or password
+        '429':
+          $ref: '#/components/responses/RateLimitError'
+
+  /auth/refresh:
+    post:
+      tags:
+        - Authentication
+      summary: Refresh access token
+      description: Use refresh token to obtain a new access token
+      security:
+        - CookieAuth: []
+      responses:
+        '200':
+          description: Token refreshed successfully
+          headers:
+            Set-Cookie:
+              description: New access token in HttpOnly cookie
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RefreshResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+  /auth/logout:
+    post:
+      tags:
+        - Authentication
+      summary: Logout and invalidate tokens
+      description: Invalidate user's refresh token and clear cookies
+      responses:
+        '200':
+          description: Logout successful
+          headers:
+            Set-Cookie:
+              description: Cleared cookies
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResponse'
+              example:
+                success: true
+                message: Logout successful
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+  /auth/me:
+    get:
+      tags:
+        - Authentication
+      summary: Get current user profile
+      description: Retrieve authenticated user's profile information
+      responses:
+        '200':
+          description: User profile retrieved
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/UserProfile'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+  # ==================== Project Endpoints ====================
+  /projects:
+    get:
+      tags:
+        - Projects
+      summary: List projects
+      description: |
+        List all projects accessible to the user.
+        - Master: See all projects
+        - User: See only assigned projects
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/LimitParam'
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [all, active, archived, completed]
+            default: all
+        - name: sort
+          in: query
+          schema:
+            type: string
+            default: created_at
+        - name: order
+          in: query
+          schema:
+            type: string
+            enum: [asc, desc]
+            default: desc
+      responses:
+        '200':
+          description: Projects retrieved successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/ProjectSummary'
+                      meta:
+                        $ref: '#/components/schemas/PaginationMeta'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+    post:
+      tags:
+        - Projects
+      summary: Create a project (Master only)
+      description: Create a new project. Only master users can create projects.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateProjectRequest'
+      responses:
+        '201':
+          description: Project created successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/Project'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+
+  /projects/{id}:
+    get:
+      tags:
+        - Projects
+      summary: Get project details
+      description: Get project by ID with tasks and assignments
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      responses:
+        '200':
+          description: Project retrieved successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/ProjectDetails'
+        '403':
+          $ref: '#/components/responses/AccessDeniedError'
+        '404':
+          $ref: '#/components/responses/ProjectNotFoundError'
+
+    put:
+      tags:
+        - Projects
+      summary: Update project (Master only)
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateProjectRequest'
+      responses:
+        '200':
+          description: Project updated successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/Project'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '404':
+          $ref: '#/components/responses/ProjectNotFoundError'
+
+    delete:
+      tags:
+        - Projects
+      summary: Delete project (Master only)
+      description: Delete a project. Cannot delete project with active tasks.
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      responses:
+        '204':
+          description: Project deleted successfully
+        '400':
+          description: Project has active tasks
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                success: false
+                error:
+                  code: PROJECT_HAS_ACTIVE_TASKS
+                  message: Cannot delete project with active tasks
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '404':
+          $ref: '#/components/responses/ProjectNotFoundError'
+
+  /projects/{id}/assign-user:
+    post:
+      tags:
+        - Projects
+      summary: Assign user to project (Master only)
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - user_id
+              properties:
+                user_id:
+                  type: string
+                  format: uuid
+      responses:
+        '200':
+          description: User assigned successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+
+  /projects/{id}/unassign-user/{userId}:
+    delete:
+      tags:
+        - Projects
+      summary: Remove user from project (Master only)
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: User removed successfully
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+
+  # ==================== Task Endpoints ====================
+  /tasks:
+    get:
+      tags:
+        - Tasks
+      summary: List tasks
+      description: |
+        List tasks accessible to the user with filtering options.
+        - Master: See all tasks
+        - User: See only assigned tasks
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/LimitParam'
+        - name: project_id
+          in: query
+          schema:
+            type: string
+            format: uuid
+        - name: status
+          in: query
+          schema:
+            $ref: '#/components/schemas/TaskStatus'
+        - name: priority
+          in: query
+          schema:
+            $ref: '#/components/schemas/TaskPriority'
+        - name: assigned_to_me
+          in: query
+          schema:
+            type: boolean
+        - name: start_date_from
+          in: query
+          schema:
+            type: string
+            format: date
+        - name: end_date_to
+          in: query
+          schema:
+            type: string
+            format: date
+      responses:
+        '200':
+          description: Tasks retrieved successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/TaskSummary'
+                      meta:
+                        $ref: '#/components/schemas/PaginationMeta'
+
+    post:
+      tags:
+        - Tasks
+      summary: Create a task (Master only)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateTaskRequest'
+      responses:
+        '201':
+          description: Task created successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/Task'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+
+  /tasks/{id}:
+    get:
+      tags:
+        - Tasks
+      summary: Get task details
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      responses:
+        '200':
+          description: Task retrieved successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/TaskDetails'
+        '403':
+          $ref: '#/components/responses/AccessDeniedError'
+        '404':
+          $ref: '#/components/responses/TaskNotFoundError'
+
+    put:
+      tags:
+        - Tasks
+      summary: Update task (Master only)
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateTaskRequest'
+      responses:
+        '200':
+          description: Task updated successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/Task'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+
+    delete:
+      tags:
+        - Tasks
+      summary: Delete task (Master only)
+      description: Delete a task. Cannot delete task with sub-tasks.
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      responses:
+        '204':
+          description: Task deleted successfully
+        '400':
+          description: Task has sub-tasks
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+
+  /tasks/{id}/status:
+    patch:
+      tags:
+        - Tasks
+      summary: Update task status
+      description: |
+        Update task status. Valid transitions:
+        - not_started → iniciada
+        - iniciada → en_progreso  
+        - en_progreso → completada
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - status
+              properties:
+                status:
+                  $ref: '#/components/schemas/TaskStatus'
+      responses:
+        '200':
+          description: Task status updated
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/Task'
+        '400':
+          description: Invalid status transition
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                success: false
+                error:
+                  code: INVALID_STATUS_TRANSITION
+                  message: Cannot transition from 'completada' to 'iniciada'
+
+  /tasks/{id}/assign-user:
+    post:
+      tags:
+        - Tasks
+      summary: Assign user to task (Master only)
+      description: User must be assigned to parent project first
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - user_id
+              properties:
+                user_id:
+                  type: string
+                  format: uuid
+      responses:
+        '200':
+          description: User assigned successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResponse'
+        '400':
+          description: User not assigned to project
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+
+  # ==================== Dashboard Endpoints ====================
+  /dashboard/master:
+    get:
+      tags:
+        - Dashboard
+      summary: Get master dashboard (Master only)
+      description: Overview of all projects with task summaries and at-risk tasks
+      responses:
+        '200':
+          description: Dashboard data retrieved
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/MasterDashboard'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+
+  /dashboard/user:
+    get:
+      tags:
+        - Dashboard
+      summary: Get user dashboard
+      description: Calendar view of assigned tasks with upcoming deadlines
+      parameters:
+        - name: month
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 12
+        - name: year
+          in: query
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Dashboard data retrieved
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/UserDashboard'
+
+  # ==================== Deadline Request Endpoints ====================
+  /deadline-requests:
+    get:
+      tags:
+        - Deadline Requests
+      summary: List deadline requests
+      description: |
+        - Master: See all pending requests
+        - User: See only own requests
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [all, pending, approved, denied]
+            default: pending
+        - name: task_id
+          in: query
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Deadline requests retrieved
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/DeadlineRequest'
+
+    post:
+      tags:
+        - Deadline Requests
+      summary: Submit deadline extension request
+      description: Request deadline extension for an assigned task
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateDeadlineRequestRequest'
+      responses:
+        '201':
+          description: Request submitted successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/DeadlineRequest'
+
+  /deadline-requests/{id}/approve:
+    patch:
+      tags:
+        - Deadline Requests
+      summary: Approve deadline request (Master only)
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                review_notes:
+                  type: string
+                  maxLength: 500
+      responses:
+        '200':
+          description: Request approved, task deadline updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+
+  /deadline-requests/{id}/deny:
+    patch:
+      tags:
+        - Deadline Requests
+      summary: Deny deadline request (Master only)
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                review_notes:
+                  type: string
+                  maxLength: 500
+      responses:
+        '200':
+          description: Request denied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+
+  # ==================== Time Tracking Endpoints ====================
+  /time-entries:
+    get:
+      tags:
+        - Time Tracking
+      summary: List time entries
+      description: |
+        - Master: See all time entries
+        - User: See only own entries
+      parameters:
+        - name: task_id
+          in: query
+          schema:
+            type: string
+            format: uuid
+        - name: user_id
+          in: query
+          description: Master only
+          schema:
+            type: string
+            format: uuid
+        - name: work_date_from
+          in: query
+          schema:
+            type: string
+            format: date
+        - name: work_date_to
+          in: query
+          schema:
+            type: string
+            format: date
+        - $ref: '#/components/parameters/LimitParam'
+      responses:
+        '200':
+          description: Time entries retrieved
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/TimeEntry'
+                      meta:
+                        type: object
+                        properties:
+                          total_hours:
+                            type: number
+                          entry_count:
+                            type: integer
+
+    post:
+      tags:
+        - Time Tracking
+      summary: Log time entry
+      description: Log time spent on an assigned task
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateTimeEntryRequest'
+      responses:
+        '201':
+          description: Time entry logged successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/TimeEntry'
+
+  /time-entries/{id}:
+    delete:
+      tags:
+        - Time Tracking
+      summary: Delete time entry
+      description: Delete own time entry or any entry (Master)
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      responses:
+        '204':
+          description: Time entry deleted
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+
+  # ==================== Notification Endpoints ====================
+  /notifications:
+    get:
+      tags:
+        - Notifications
+      summary: List user notifications
+      parameters:
+        - name: is_read
+          in: query
+          schema:
+            type: boolean
+        - name: type
+          in: query
+          schema:
+            type: string
+        - $ref: '#/components/parameters/LimitParam'
+      responses:
+        '200':
+          description: Notifications retrieved
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Notification'
+                      meta:
+                        type: object
+                        properties:
+                          unread_count:
+                            type: integer
+                          total:
+                            type: integer
+
+  /notifications/{id}/read:
+    patch:
+      tags:
+        - Notifications
+      summary: Mark notification as read
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      responses:
+        '200':
+          description: Notification marked as read
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResponse'
+
+  /notifications/mark-all-read:
+    post:
+      tags:
+        - Notifications
+      summary: Mark all notifications as read
+      responses:
+        '200':
+          description: All notifications marked as read
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResponse'
+
+  # ==================== Health Check ====================
+  /health:
+    get:
+      tags:
+        - Health
+      summary: Health check endpoint
+      security: []
+      responses:
+        '200':
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: healthy
+                  timestamp:
+                    type: string
+                    format: date-time
+                  uptime:
+                    type: integer
+                  services:
+                    type: object
+                    properties:
+                      database:
+                        type: string
+                      api:
+                        type: string
+
+# ==================== Components ====================
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT access token in Authorization header
+    
+    CookieAuth:
+      type: apiKey
+      in: cookie
+      name: access_token
+      description: JWT access token in HttpOnly cookie
+
+  parameters:
+    IdParam:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    
+    PageParam:
+      name: page
+      in: query
+      schema:
+        type: integer
+        minimum: 1
+        default: 1
+    
+    LimitParam:
+      name: limit
+      in: query
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 50
+        default: 50
+
+  schemas:
+    # ==================== Auth Schemas ====================
+    RegisterRequest:
+      type: object
+      required:
+        - email
+        - password
+        - full_name
+        - role
+      properties:
+        email:
+          type: string
+          format: email
+          maxLength: 255
+        password:
+          type: string
+          minLength: 8
+          maxLength: 100
+          description: Must contain uppercase, lowercase, and number
+        full_name:
+          type: string
+          minLength: 2
+          maxLength: 255
+        role:
+          type: string
+          enum: [master, user]
+
+    LoginRequest:
+      type: object
+      required:
+        - email
+        - password
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+
+    LoginResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          type: object
+          properties:
+            user:
+              $ref: '#/components/schemas/UserProfile'
+            access_token:
+              type: string
+            refresh_token:
+              type: string
+            expires_in:
+              type: integer
+              description: Seconds until access token expires
+        message:
+          type: string
+
+    RefreshResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          type: object
+          properties:
+            access_token:
+              type: string
+            expires_in:
+              type: integer
+        message:
+          type: string
+
+    UserProfile:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        email:
+          type: string
+          format: email
+        full_name:
+          type: string
+        role:
+          type: string
+          enum: [master, user]
+        is_active:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+        last_login_at:
+          type: string
+          format: date-time
+
+    # ==================== Project Schemas ====================
+    CreateProjectRequest:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+          minLength: 3
+          maxLength: 255
+        description:
+          type: string
+          maxLength: 5000
+        start_date:
+          type: string
+          format: date
+        end_date:
+          type: string
+          format: date
+
+    UpdateProjectRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 3
+          maxLength: 255
+        description:
+          type: string
+          maxLength: 5000
+        status:
+          type: string
+          enum: [active, archived, completed]
+        start_date:
+          type: string
+          format: date
+        end_date:
+          type: string
+          format: date
+
+    Project:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        description:
+          type: string
+        status:
+          type: string
+          enum: [active, archived, completed]
+        created_by:
+          $ref: '#/components/schemas/UserSummary'
+        start_date:
+          type: string
+          format: date
+        end_date:
+          type: string
+          format: date
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    ProjectSummary:
+      allOf:
+        - $ref: '#/components/schemas/Project'
+        - type: object
+          properties:
+            task_count:
+              type: integer
+            assigned_user_count:
+              type: integer
+
+    ProjectDetails:
+      allOf:
+        - $ref: '#/components/schemas/Project'
+        - type: object
+          properties:
+            assigned_users:
+              type: array
+              items:
+                $ref: '#/components/schemas/UserAssignment'
+            tasks:
+              type: array
+              items:
+                $ref: '#/components/schemas/TaskSummary'
+
+    # ==================== Task Schemas ====================
+    TaskStatus:
+      type: string
+      enum: [not_started, iniciada, en_progreso, completada, blocked, cancelled]
+
+    TaskPriority:
+      type: string
+      enum: [low, medium, high, critical]
+
+    CreateTaskRequest:
+      type: object
+      required:
+        - project_id
+        - title
+      properties:
+        project_id:
+          type: string
+          format: uuid
+        parent_task_id:
+          type: string
+          format: uuid
+          nullable: true
+        title:
+          type: string
+          minLength: 3
+          maxLength: 255
+        description:
+          type: string
+          maxLength: 5000
+        priority:
+          $ref: '#/components/schemas/TaskPriority'
+        start_date:
+          type: string
+          format: date
+        end_date:
+          type: string
+          format: date
+        estimated_hours:
+          type: number
+          minimum: 0
+        assigned_user_ids:
+          type: array
+          items:
+            type: string
+            format: uuid
+
+    UpdateTaskRequest:
+      type: object
+      properties:
+        title:
+          type: string
+          minLength: 3
+          maxLength: 255
+        description:
+          type: string
+          maxLength: 5000
+        priority:
+          $ref: '#/components/schemas/TaskPriority'
+        start_date:
+          type: string
+          format: date
+        end_date:
+          type: string
+          format: date
+        estimated_hours:
+          type: number
+          minimum: 0
+
+    Task:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        project:
+          $ref: '#/components/schemas/ProjectReference'
+        parent_task_id:
+          type: string
+          format: uuid
+          nullable: true
+        title:
+          type: string
+        description:
+          type: string
+        status:
+          $ref: '#/components/schemas/TaskStatus'
+        priority:
+          $ref: '#/components/schemas/TaskPriority'
+        start_date:
+          type: string
+          format: date
+        end_date:
+          type: string
+          format: date
+        estimated_hours:
+          type: number
+        actual_hours:
+          type: number
+        completion_percentage:
+          type: integer
+          minimum: 0
+          maximum: 100
+        created_by:
+          $ref: '#/components/schemas/UserSummary'
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        completed_at:
+          type: string
+          format: date-time
+          nullable: true
+
+    TaskSummary:
+      allOf:
+        - $ref: '#/components/schemas/Task'
+        - type: object
+          properties:
+            assigned_users:
+              type: array
+              items:
+                $ref: '#/components/schemas/UserSummary'
+            sub_task_count:
+              type: integer
+
+    TaskDetails:
+      allOf:
+        - $ref: '#/components/schemas/Task'
+        - type: object
+          properties:
+            assigned_users:
+              type: array
+              items:
+                $ref: '#/components/schemas/UserAssignment'
+            sub_tasks:
+              type: array
+              items:
+                $ref: '#/components/schemas/TaskSummary'
+            time_entries:
+              type: array
+              items:
+                $ref: '#/components/schemas/TimeEntry'
+
+    # ==================== Dashboard Schemas ====================
+    MasterDashboard:
+      type: object
+      properties:
+        summary:
+          type: object
+          properties:
+            total_projects:
+              type: integer
+            active_projects:
+              type: integer
+            total_tasks:
+              type: integer
+            tasks_at_risk:
+              type: integer
+            tasks_overdue:
+              type: integer
+        projects:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: string
+                format: uuid
+              name:
+                type: string
+              status:
+                type: string
+              task_summary:
+                type: object
+                properties:
+                  total:
+                    type: integer
+                  not_started:
+                    type: integer
+                  iniciada:
+                    type: integer
+                  en_progreso:
+                    type: integer
+                  completada:
+                    type: integer
+              tasks:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TaskSummary'
+        at_risk_tasks:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: string
+              title:
+                type: string
+              project_name:
+                type: string
+              status:
+                $ref: '#/components/schemas/TaskStatus'
+              end_date:
+                type: string
+                format: date
+              days_remaining:
+                type: integer
+              risk_level:
+                type: string
+                enum: [low, medium, high]
+
+    UserDashboard:
+      type: object
+      properties:
+        summary:
+          type: object
+          properties:
+            assigned_tasks:
+              type: integer
+            tasks_due_soon:
+              type: integer
+            completed_this_week:
+              type: integer
+            total_hours_logged:
+              type: number
+        calendar_tasks:
+          type: array
+          items:
+            type: object
+            properties:
+              date:
+                type: string
+                format: date
+              tasks:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: string
+                    title:
+                      type: string
+                    project_name:
+                      type: string
+                    status:
+                      $ref: '#/components/schemas/TaskStatus'
+                    priority:
+                      $ref: '#/components/schemas/TaskPriority'
+                    is_start_date:
+                      type: boolean
+                    is_end_date:
+                      type: boolean
+
+    # ==================== Deadline Request Schemas ====================
+    CreateDeadlineRequestRequest:
+      type: object
+      required:
+        - task_id
+        - requested_deadline
+        - reason
+      properties:
+        task_id:
+          type: string
+          format: uuid
+        requested_deadline:
+          type: string
+          format: date
+        reason:
+          type: string
+          minLength: 10
+          maxLength: 1000
+
+    DeadlineRequest:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        task:
+          type: object
+          properties:
+            id:
+              type: string
+            title:
+              type: string
+            project_name:
+              type: string
+        requested_by:
+          $ref: '#/components/schemas/UserSummary'
+        current_deadline:
+          type: string
+          format: date
+        requested_deadline:
+          type: string
+          format: date
+        reason:
+          type: string
+        status:
+          type: string
+          enum: [pending, approved, denied]
+        reviewed_by:
+          $ref: '#/components/schemas/UserSummary'
+          nullable: true
+        reviewed_at:
+          type: string
+          format: date-time
+          nullable: true
+        review_notes:
+          type: string
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+
+    # ==================== Time Entry Schemas ====================
+    CreateTimeEntryRequest:
+      type: object
+      required:
+        - task_id
+        - hours_worked
+        - work_date
+      properties:
+        task_id:
+          type: string
+          format: uuid
+        hours_worked:
+          type: number
+          minimum: 0.01
+          maximum: 24
+        work_date:
+          type: string
+          format: date
+        description:
+          type: string
+          maxLength: 500
+
+    TimeEntry:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        task:
+          $ref: '#/components/schemas/TaskReference'
+        user:
+          $ref: '#/components/schemas/UserSummary'
+        hours_worked:
+          type: number
+        work_date:
+          type: string
+          format: date
+        description:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+
+    # ==================== Notification Schemas ====================
+    Notification:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        type:
+          type: string
+        title:
+          type: string
+        message:
+          type: string
+        related_task:
+          $ref: '#/components/schemas/TaskReference'
+          nullable: true
+        related_project:
+          $ref: '#/components/schemas/ProjectReference'
+          nullable: true
+        is_read:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+
+    # ==================== Common Schemas ====================
+    UserSummary:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        full_name:
+          type: string
+        email:
+          type: string
+          format: email
+
+    UserAssignment:
+      allOf:
+        - $ref: '#/components/schemas/UserSummary'
+        - type: object
+          properties:
+            assigned_at:
+              type: string
+              format: date-time
+
+    ProjectReference:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+
+    TaskReference:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        title:
+          type: string
+        project_name:
+          type: string
+
+    PaginationMeta:
+      type: object
+      properties:
+        page:
+          type: integer
+        limit:
+          type: integer
+        total:
+          type: integer
+        total_pages:
+          type: integer
+        has_next:
+          type: boolean
+        has_prev:
+          type: boolean
+
+    SuccessResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: object
+        message:
+          type: string
+        meta:
+          type: object
+
+    ErrorResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: false
+        error:
+          type: object
+          properties:
+            code:
+              type: string
+            message:
+              type: string
+            details:
+              type: array
+              items:
+                type: object
+                properties:
+                  field:
+                    type: string
+                  message:
+                    type: string
+
+    MessageResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+
+  responses:
+    ValidationError:
+      description: Validation error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            success: false
+            error:
+              code: VALIDATION_ERROR
+              message: Invalid input data
+              details:
+                - field: email
+                  message: Email already exists
+
+    UnauthorizedError:
+      description: Authentication required
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            success: false
+            error:
+              code: INVALID_TOKEN
+              message: Access token is invalid or expired
+
+    ForbiddenError:
+      description: Insufficient permissions
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            success: false
+            error:
+              code: INSUFFICIENT_PERMISSIONS
+              message: Only master users can perform this action
+
+    AccessDeniedError:
+      description: Access denied to resource
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            success: false
+            error:
+              code: ACCESS_DENIED
+              message: You do not have access to this resource
+
+    NotFoundError:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            success: false
+            error:
+              code: NOT_FOUND
+              message: Resource not found
+
+    ProjectNotFoundError:
+      description: Project not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            success: false
+            error:
+              code: PROJECT_NOT_FOUND
+              message: Project not found
+
+    TaskNotFoundError:
+      description: Task not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            success: false
+            error:
+              code: TASK_NOT_FOUND
+              message: Task not found
+
+    RateLimitError:
+      description: Rate limit exceeded
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            success: false
+            error:
+              code: RATE_LIMIT_EXCEEDED
+              message: Too many requests. Please try again later.
+
+    InternalServerError:
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            success: false
+            error:
+              code: INTERNAL_SERVER_ERROR
+              message: An unexpected error occurred
