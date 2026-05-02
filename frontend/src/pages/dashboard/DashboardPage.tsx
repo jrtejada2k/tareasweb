@@ -4,6 +4,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { useRole } from '../../hooks/useRole';
 import CalendarView from '../../components/dashboard/CalendarView';
 import UpcomingTasksPanel from '../../components/dashboard/UpcomingTasksPanel';
+import MasterDashboard from '../../components/dashboard/MasterDashboard';
 
 const DashboardPage: React.FC = () => {
   const { user } = useAuth();
@@ -21,23 +22,7 @@ const DashboardPage: React.FC = () => {
       </Box>
 
       {isMaster ? (
-        // Master Dashboard - Show project cards and overview
-        <Grid container spacing={3}>
-          <Grid item xs={12}>
-            <Typography variant="h6" gutterBottom>
-              Master Dashboard Coming Soon
-            </Typography>
-            <Typography variant="body2" color="text.secondary">
-              Project cards, at-risk tasks, and recent requests will be displayed here.
-            </Typography>
-          </Grid>
-          <Grid item xs={12} lg={8}>
-            <CalendarView />
-          </Grid>
-          <Grid item xs={12} lg={4}>
-            <UpcomingTasksPanel />
-          </Grid>
-        </Grid>
+        <MasterDashboard />
       ) : (
         // User Dashboard - Show calendar and upcoming tasks
         <Grid container spacing={3}>

@@ -30,8 +30,8 @@ const createTaskSchema = Joi.object({
   parent_task_id: Joi.string().uuid().allow(null).optional(),
   title: Joi.string().trim().min(3).max(255).required(),
   description: Joi.string().allow('', null).max(5000).optional(),
-  status: Joi.string().valid('not_started', 'iniciada', 'en_progreso', 'completada').optional(),
-  priority: Joi.string().valid('low', 'medium', 'high', 'urgent').optional(),
+  status: Joi.string().valid('not_started', 'iniciada', 'en_progreso', 'completada', 'blocked', 'cancelled').optional(),
+  priority: Joi.string().valid('low', 'medium', 'high', 'critical').optional(),
   start_date: Joi.date().iso().optional(),
   end_date: Joi.date().iso().min(Joi.ref('start_date')).optional(),
   estimated_hours: Joi.number().min(0).max(10000).optional(),
@@ -40,8 +40,8 @@ const createTaskSchema = Joi.object({
 const updateTaskSchema = Joi.object({
   title: Joi.string().trim().min(3).max(255).optional(),
   description: Joi.string().allow('', null).max(5000).optional(),
-  status: Joi.string().valid('not_started', 'iniciada', 'en_progreso', 'completada').optional(),
-  priority: Joi.string().valid('low', 'medium', 'high', 'urgent').optional(),
+  status: Joi.string().valid('not_started', 'iniciada', 'en_progreso', 'completada', 'blocked', 'cancelled').optional(),
+  priority: Joi.string().valid('low', 'medium', 'high', 'critical').optional(),
   start_date: Joi.date().iso().allow(null).optional(),
   end_date: Joi.date().iso().allow(null).optional(),
   estimated_hours: Joi.number().min(0).max(10000).allow(null).optional(),
@@ -55,7 +55,7 @@ const taskIdSchema = Joi.object({
 
 const updateStatusSchema = Joi.object({
   status: Joi.string()
-    .valid('not_started', 'iniciada', 'en_progreso', 'completada')
+    .valid('not_started', 'iniciada', 'en_progreso', 'completada', 'blocked', 'cancelled')
     .required(),
 });
 

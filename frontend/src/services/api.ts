@@ -112,7 +112,7 @@ export const projectsService = {
   },
 
   assignUser: async (projectId: string, userId: string) => {
-    const response = await apiClient.post(`/projects/${projectId}/assign`, { user_id: userId });
+    const response = await apiClient.post(`/projects/${projectId}/assign-user`, { userId });
     return response.data;
   },
 };
@@ -123,6 +123,12 @@ export const tasksService = {
     project_id?: string;
     status?: string;
     priority?: string;
+    assigned_to_me?: string;
+    start_date_from?: string;
+    start_date_to?: string;
+    end_date_from?: string;
+    end_date_to?: string;
+    search?: string;
     page?: number;
     limit?: number;
   }) => {
@@ -176,6 +182,65 @@ export const tasksService = {
 
   assignUser: async (taskId: string, userId: string) => {
     const response = await apiClient.post(`/tasks/${taskId}/assign`, { user_id: userId });
+    return response.data;
+  },
+};
+
+// Time Entries Service
+export const timeEntriesService = {
+  getByTask: async (taskId: string) => {
+    const response = await apiClient.get('/time-entries', { params: { task_id: taskId } });
+    return response.data;
+  },
+
+  create: async (data: {
+    task_id: string;
+    hours_worked: number;
+    work_date: string;
+    description?: string;
+  }) => {
+    const response = await apiClient.post('/time-entries', data);
+    return response.data;
+  },
+
+  delete: async (id: string) => {
+    const response = await apiClient.delete(`/time-entries/${id}`);
+    return response.data;
+  },
+};
+
+// Deadline Requests Service
+export const deadlineRequestsService = {
+  getAll: async (params?: { status?: string; task_id?: string; project_id?: string }) => {
+    const response = await apiClient.get('/deadline-requests', { params });
+    return response.data;
+  },
+
+  create: async (data: { task_id: string; requested_deadline: string; reason: string }) => {
+    const response = await apiClient.post('/deadline-requests', data);
+    return response.data;
+  },
+
+  approve: async (id: string, review_notes?: string) => {
+    const response = await apiClient.patch(`/deadline-requests/${id}/approve`, { review_notes });
+    return response.data;
+  },
+
+  deny: async (id: string, review_notes?: string) => {
+    const response = await apiClient.patch(`/deadline-requests/${id}/deny`, { review_notes });
+    return response.data;
+  },
+};
+
+// Dashboard Service
+export const dashboardService = {
+  getUserDashboard: async (month?: number, year?: number) => {
+    const response = await apiClient.get('/dashboard/user', { params: { month, year } });
+    return response.data;
+  },
+
+  getMasterDashboard: async () => {
+    const response = await apiClient.get('/dashboard/master');
     return response.data;
   },
 };

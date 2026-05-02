@@ -108,7 +108,8 @@ const createApp = (): Application => {
   const deadlineRoutes = require('@routes/deadlineRoutes').default;
   const timeTrackingRoutes = require('@routes/timeTrackingRoutes').default;
   const userRoutes = require('@routes/userRoutes').default;
-  
+  const notificationRoutes = require('@routes/notificationRoutes').default;
+
   // Mount routes
   app.use('/api/v1/auth', authRoutes);
   app.use('/api/v1/projects', projectRoutes);
@@ -117,6 +118,7 @@ const createApp = (): Application => {
   app.use('/api/v1/deadline-requests', deadlineRoutes);
   app.use('/api/v1/time-entries', timeTrackingRoutes);
   app.use('/api/v1/users', userRoutes);
+  app.use('/api/v1/notifications', notificationRoutes);
 
   // API root endpoint
   app.get('/api', (_req: Request, res: Response) => {

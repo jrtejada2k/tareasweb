@@ -10,6 +10,8 @@ export enum TaskStatus {
   INICIADA = 'iniciada',
   EN_PROGRESO = 'en_progreso',
   COMPLETADA = 'completada',
+  BLOCKED = 'blocked',
+  CANCELLED = 'cancelled',
 }
 
 // Task priority enum
@@ -17,7 +19,7 @@ export enum TaskPriority {
   LOW = 'low',
   MEDIUM = 'medium',
   HIGH = 'high',
-  URGENT = 'urgent',
+  CRITICAL = 'critical',
 }
 
 // Create task DTO

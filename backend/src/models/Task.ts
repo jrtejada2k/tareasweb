@@ -10,8 +10,8 @@ export interface Task {
   parent_task_id: string | null; // UUID for sub-tasks
   title: string;
   description: string | null;
-  status: 'not_started' | 'iniciada' | 'en_progreso' | 'completada';
-  priority: 'low' | 'medium' | 'high' | 'urgent';
+  status: 'not_started' | 'iniciada' | 'en_progreso' | 'completada' | 'blocked' | 'cancelled';
+  priority: 'low' | 'medium' | 'high' | 'critical';
   start_date: Date | null;
   end_date: Date | null;
   estimated_hours: number | null;
@@ -31,8 +31,8 @@ export interface CreateTaskData {
   parent_task_id?: string | null;
   title: string;
   description?: string | null;
-  status?: 'not_started' | 'iniciada' | 'en_progreso' | 'completada';
-  priority?: 'low' | 'medium' | 'high' | 'urgent';
+  status?: 'not_started' | 'iniciada' | 'en_progreso' | 'completada' | 'blocked' | 'cancelled';
+  priority?: 'low' | 'medium' | 'high' | 'critical';
   start_date?: Date | null;
   end_date?: Date | null;
   estimated_hours?: number | null;
@@ -47,8 +47,8 @@ export interface CreateTaskData {
 export interface UpdateTaskData {
   title?: string;
   description?: string | null;
-  status?: 'not_started' | 'iniciada' | 'en_progreso' | 'completada';
-  priority?: 'low' | 'medium' | 'high' | 'urgent';
+  status?: 'not_started' | 'iniciada' | 'en_progreso' | 'completada' | 'blocked' | 'cancelled';
+  priority?: 'low' | 'medium' | 'high' | 'critical';
   start_date?: Date | null;
   end_date?: Date | null;
   estimated_hours?: number | null;

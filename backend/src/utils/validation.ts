@@ -131,11 +131,11 @@ export const paginationSchema = Joi.object({
  */
 export const updateStatusSchema = Joi.object({
   status: Joi.string()
-    .valid('not_started', 'iniciada', 'en_progreso', 'completada')
+    .valid('not_started', 'iniciada', 'en_progreso', 'completada', 'blocked', 'cancelled')
     .required()
     .messages({
       'any.required': 'Status is required',
-      'any.only': 'Status must be one of: not_started, iniciada, en_progreso, completada',
+      'any.only': 'Status must be one of: not_started, iniciada, en_progreso, completada, blocked, cancelled',
     }),
 });
 
@@ -144,10 +144,12 @@ export const updateStatusSchema = Joi.object({
  * Maps current status to array of allowed next statuses
  */
 const STATUS_TRANSITIONS: Record<string, string[]> = {
-  not_started: ['iniciada', 'completada'], // Can start or mark complete directly
-  iniciada: ['en_progreso', 'completada', 'not_started'], // Can progress, complete, or reset
-  en_progreso: ['completada', 'iniciada'], // Can complete or go back to iniciada
-  completada: [], // Terminal state - no transitions allowed from completed
+  not_started: ['iniciada', 'completada', 'cancelled'],
+  iniciada: ['en_progreso', 'completada', 'not_started', 'blocked', 'cancelled'],
+  en_progreso: ['completada', 'iniciada', 'blocked', 'cancelled'],
+  completada: [], // terminal
+  blocked: ['iniciada', 'en_progreso', 'cancelled'],
+  cancelled: [], // terminal
 };
 
 /**
@@ -189,10 +191,10 @@ export const taskQuerySchema = Joi.object({
   project_id: Joi.string().uuid().optional(),
   parent_task_id: Joi.string().uuid().allow(null, '').optional(),
   status: Joi.string()
-    .valid('not_started', 'iniciada', 'en_progreso', 'completada')
+    .valid('not_started', 'iniciada', 'en_progreso', 'completada', 'blocked', 'cancelled')
     .optional(),
   priority: Joi.string()
-    .valid('low', 'medium', 'high', 'urgent')
+    .valid('low', 'medium', 'high', 'critical')
     .optional(),
   assigned_user_id: Joi.string().uuid().optional(),
   assigned_to_me: Joi.string().valid('true', 'false').optional(),

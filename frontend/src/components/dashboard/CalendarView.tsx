@@ -14,7 +14,7 @@ import {
   Divider,
 } from '@mui/material';
 import { format } from 'date-fns';
-import axios from 'axios';
+import apiClient from '../../services/api';
 
 interface Task {
   id: string;
@@ -50,7 +50,7 @@ const CalendarView: React.FC = () => {
       const month = date.getMonth() + 1;
       const year = date.getFullYear();
       
-      const response = await axios.get(`/api/v1/dashboard/user`, {
+      const response = await apiClient.get(`/dashboard/user`, {
         params: { month, year },
       });
       
@@ -91,7 +91,7 @@ const CalendarView: React.FC = () => {
     const tasks = getTasksForDate(date);
     if (tasks.length === 0) return null;
 
-    const completedCount = tasks.filter((t) => t.status === 'completed').length;
+    const completedCount = tasks.filter((t) => t.status === 'completada').length;
     const pendingCount = tasks.length - completedCount;
 
     return (

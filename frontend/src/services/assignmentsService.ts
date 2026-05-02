@@ -4,7 +4,7 @@ import api from './api';
 export const assignmentsService = {
   // Project assignments
   async assignUserToProject(projectId: string, userId: string): Promise<void> {
-    await api.post(`/projects/${projectId}/assign-user`, { user_id: userId });
+    await api.post(`/projects/${projectId}/assign-user`, { userId });
   },
 
   async removeUserFromProject(projectId: string, userId: string): Promise<void> {
@@ -18,7 +18,7 @@ export const assignmentsService = {
 
   // Task assignments
   async assignUserToTask(taskId: string, userId: string): Promise<void> {
-    await api.post(`/tasks/${taskId}/assign-user`, { user_id: userId });
+    await api.post(`/tasks/${taskId}/assign-user`, { userId });
   },
 
   async removeUserFromTask(taskId: string, userId: string): Promise<void> {

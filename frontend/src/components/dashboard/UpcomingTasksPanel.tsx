@@ -47,7 +47,7 @@ const UpcomingTasksPanel: React.FC = () => {
       // Filter for non-completed tasks with upcoming deadlines
       const upcoming = allTasks
         .filter((task: Task) => 
-          task.status !== 'completed' && 
+          task.status !== 'completada' &&
           task.status !== 'cancelled' &&
           new Date(task.deadline) >= new Date()
         )
