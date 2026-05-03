@@ -4,6 +4,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { useRole } from '../../hooks/useRole';
 import CalendarView from '../../components/dashboard/CalendarView';
 import UpcomingTasksPanel from '../../components/dashboard/UpcomingTasksPanel';
+import PendingTasksPanel from '../../components/dashboard/PendingTasksPanel';
 import MasterDashboard from '../../components/dashboard/MasterDashboard';
 
 const DashboardPage: React.FC = () => {
@@ -31,6 +32,9 @@ const DashboardPage: React.FC = () => {
           </Grid>
           <Grid item xs={12} lg={4}>
             <UpcomingTasksPanel />
+          </Grid>
+          <Grid item xs={12}>
+            <PendingTasksPanel />
           </Grid>
         </Grid>
       )}

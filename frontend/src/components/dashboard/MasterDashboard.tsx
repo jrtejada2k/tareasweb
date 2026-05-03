@@ -29,6 +29,7 @@ import WarningAmberIcon from '@mui/icons-material/WarningAmber';
 import PersonIcon from '@mui/icons-material/Person';
 import { useNavigate } from 'react-router-dom';
 import { dashboardService } from '../../services/api';
+import PendingTasksPanel from './PendingTasksPanel';
 
 interface Statistics {
   total_projects: number;
@@ -78,7 +79,7 @@ interface DeadlineRequest {
   requested_by: string;
   requester_name: string;
   status: 'pending' | 'approved' | 'denied';
-  original_deadline: string | null;
+  current_deadline: string | null;
   requested_deadline: string | null;
   reason: string;
   created_at: string;
@@ -278,6 +279,10 @@ const MasterDashboard: React.FC = () => {
         </Grid>
       </Grid>
 
+      <Box sx={{ mb: 3 }}>
+        <PendingTasksPanel />
+      </Box>
+
       <Box>
         <Typography variant="h6" gutterBottom>
           Recent Deadline Requests
@@ -321,7 +326,7 @@ const MasterDashboard: React.FC = () => {
                         color={requestStatusColor(req.status)}
                       />
                     </TableCell>
-                    <TableCell>{formatDate(req.original_deadline)}</TableCell>
+                    <TableCell>{formatDate(req.current_deadline)}</TableCell>
                     <TableCell>{formatDate(req.requested_deadline)}</TableCell>
                     <TableCell>{formatDate(req.created_at)}</TableCell>
                   </TableRow>
