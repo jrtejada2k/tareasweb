@@ -30,24 +30,41 @@ apiClient.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
 
-    // Only block refresh on the refresh endpoint itself (prevents infinite loop)
-    const isRefreshEndpoint = originalRequest.url?.includes('/auth/refresh');
-    if (error.response?.status === 401 && !originalRequest._retry && !isRefreshEndpoint) {
+    // Skip refresh attempts for auth endpoints themselves (login/register/refresh/me)
+    // — those returning 401 mean unauthenticated, not "need refresh"
+    const isAuthEndpoint = originalRequest.url?.includes('/auth/');
+    if (
+      error.response?.status === 401 &&
+      !originalRequest._retry &&
+      !isAuthEndpoint
+    ) {
       originalRequest._retry = true;
 
       try {
         await authService.refreshToken();
         return apiClient(originalRequest);
       } catch (refreshError) {
-        window.location.href = '/login';
+        // Only redirect if not already on a public auth page
+        const path = window.location.pathname;
+        if (!path.startsWith('/login') && !path.startsWith('/register')) {
+          window.location.href = '/login';
+        }
         return Promise.reject(refreshError);
       }
     }
 
     // Suppress toast for expected 401s (unauthenticated /auth/me on first load, failed refresh)
-    const isAuthEndpoint = originalRequest.url?.includes('/auth/');
     if (!(error.response?.status === 401 && isAuthEndpoint)) {
-      const errorMessage = error.response?.data?.message || 'An error occurred';
+      const data = error.response?.data;
+      // Backend shape: { success: false, error: { code, message, details: [{field,message}] } }
+      const apiError = data?.error;
+      let errorMessage = apiError?.message || data?.message || 'An error occurred';
+      if (Array.isArray(apiError?.details) && apiError.details.length > 0) {
+        const fieldErrors = apiError.details
+          .map((d: any) => `${d.field}: ${d.message}`)
+          .join('; ');
+        errorMessage = `${errorMessage} — ${fieldErrors}`;
+      }
       toast.error(errorMessage);
     }
 

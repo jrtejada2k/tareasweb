@@ -69,7 +69,7 @@ export const createTimeEntry = async (
     try {
       // Insert time entry
       const insertResult = await query<TimeEntry>(
-        `INSERT INTO time_logs 
+        `INSERT INTO time_entries 
          (task_id, user_id, hours_worked, work_date, description, created_at)
          VALUES ($1, $2, $3, $4, $5, NOW())
          RETURNING *`,
@@ -93,7 +93,7 @@ export const createTimeEntry = async (
         `UPDATE tasks 
          SET actual_hours = (
            SELECT COALESCE(SUM(hours_worked), 0) 
-           FROM time_logs 
+           FROM time_entries 
            WHERE task_id = $1
          ),
          updated_at = NOW()
@@ -132,7 +132,7 @@ export const deleteTimeEntry = async (
   try {
     // Get the time entry
     const entryResult = await query<TimeEntry>(
-      `SELECT * FROM time_logs WHERE id = $1`,
+      `SELECT * FROM time_entries WHERE id = $1`,
       [entryId]
     );
 
@@ -157,14 +157,14 @@ export const deleteTimeEntry = async (
 
     try {
       // Delete time entry
-      await query(`DELETE FROM time_logs WHERE id = $1`, [entryId]);
+      await query(`DELETE FROM time_entries WHERE id = $1`, [entryId]);
 
       // Recalculate task's actual_hours
       await query(
         `UPDATE tasks 
          SET actual_hours = (
            SELECT COALESCE(SUM(hours_worked), 0) 
-           FROM time_logs 
+           FROM time_entries 
            WHERE task_id = $1
          ),
          updated_at = NOW()
@@ -262,7 +262,7 @@ export const getTimeEntries = async (
     // Get total count
     const countResult = await query(
       `SELECT COUNT(DISTINCT tl.id) as count
-       FROM time_logs tl
+       FROM time_entries tl
        JOIN tasks t ON t.id = tl.task_id
        ${whereClause}`,
       params
@@ -278,8 +278,8 @@ export const getTimeEntries = async (
          t.status as task_status,
          t.project_id,
          p.name as project_name,
-         u.username as user_name
-       FROM time_logs tl
+         u.full_name as user_name
+       FROM time_entries tl
        JOIN tasks t ON t.id = tl.task_id
        JOIN projects p ON p.id = t.project_id
        JOIN users u ON u.id = tl.user_id
@@ -314,7 +314,7 @@ export const getTaskTotalHours = async (taskId: string): Promise<number> => {
   try {
     const result = await query(
       `SELECT COALESCE(SUM(hours_worked), 0) as total_hours
-       FROM time_logs
+       FROM time_entries
        WHERE task_id = $1`,
       [taskId]
     );
@@ -344,8 +344,8 @@ export const getTimeEntryById = async (
          t.status as task_status,
          t.project_id,
          p.name as project_name,
-         u.username as user_name
-       FROM time_logs tl
+         u.full_name as user_name
+       FROM time_entries tl
        JOIN tasks t ON t.id = tl.task_id
        JOIN projects p ON p.id = t.project_id
        JOIN users u ON u.id = tl.user_id

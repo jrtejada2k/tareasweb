@@ -30,6 +30,7 @@ import PersonIcon from '@mui/icons-material/Person';
 import { useNavigate } from 'react-router-dom';
 import { dashboardService } from '../../services/api';
 import PendingTasksPanel from './PendingTasksPanel';
+import CalendarView from './CalendarView';
 
 interface Statistics {
   total_projects: number;
@@ -281,6 +282,10 @@ const MasterDashboard: React.FC = () => {
 
       <Box sx={{ mb: 3 }}>
         <PendingTasksPanel />
+      </Box>
+
+      <Box sx={{ mb: 3 }}>
+        <CalendarView />
       </Box>
 
       <Box>

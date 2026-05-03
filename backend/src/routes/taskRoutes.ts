@@ -33,8 +33,13 @@ const createTaskSchema = Joi.object({
   status: Joi.string().valid('not_started', 'iniciada', 'en_progreso', 'completada', 'blocked', 'cancelled').optional(),
   priority: Joi.string().valid('low', 'medium', 'high', 'critical').optional(),
   start_date: Joi.date().iso().optional(),
-  end_date: Joi.date().iso().min(Joi.ref('start_date')).optional(),
+  end_date: Joi.date().iso().optional(),
   estimated_hours: Joi.number().min(0).max(10000).optional(),
+}).custom((value, helpers) => {
+  if (value.start_date && value.end_date && new Date(value.end_date) < new Date(value.start_date)) {
+    return helpers.error('any.invalid', { message: 'end_date must be on or after start_date' });
+  }
+  return value;
 });
 
 const updateTaskSchema = Joi.object({

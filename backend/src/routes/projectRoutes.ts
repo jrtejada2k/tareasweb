@@ -28,7 +28,12 @@ const createProjectSchema = Joi.object({
   description: Joi.string().allow('', null).max(2000).optional(),
   status: Joi.string().valid('active', 'archived', 'completed').optional(),
   start_date: Joi.date().iso().optional(),
-  end_date: Joi.date().iso().min(Joi.ref('start_date')).optional(),
+  end_date: Joi.date().iso().optional(),
+}).custom((value, helpers) => {
+  if (value.start_date && value.end_date && new Date(value.end_date) < new Date(value.start_date)) {
+    return helpers.error('any.invalid', { message: 'end_date must be on or after start_date' });
+  }
+  return value;
 });
 
 const updateProjectSchema = Joi.object({
