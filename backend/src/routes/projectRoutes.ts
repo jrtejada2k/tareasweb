@@ -26,7 +26,7 @@ const router = Router();
 const createProjectSchema = Joi.object({
   name: Joi.string().trim().min(3).max(255).required(),
   description: Joi.string().allow('', null).max(2000).optional(),
-  status: Joi.string().valid('planning', 'active', 'on_hold', 'completed', 'cancelled').optional(),
+  status: Joi.string().valid('active', 'archived', 'completed').optional(),
   start_date: Joi.date().iso().optional(),
   end_date: Joi.date().iso().min(Joi.ref('start_date')).optional(),
 });
@@ -34,7 +34,7 @@ const createProjectSchema = Joi.object({
 const updateProjectSchema = Joi.object({
   name: Joi.string().trim().min(3).max(255).optional(),
   description: Joi.string().allow('', null).max(2000).optional(),
-  status: Joi.string().valid('planning', 'active', 'on_hold', 'completed', 'cancelled').optional(),
+  status: Joi.string().valid('active', 'archived', 'completed').optional(),
   start_date: Joi.date().iso().allow(null).optional(),
   end_date: Joi.date().iso().allow(null).optional(),
 });

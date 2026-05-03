@@ -229,7 +229,7 @@ describe('Task Service - Unit Tests', () => {
         title: 'Updated Task',
         description: 'Updated description',
         status: TaskStatus.COMPLETADA,
-        priority: TaskPriority.URGENT,
+        priority: TaskPriority.CRITICAL,
       };
 
       const mockUpdatedTask = {

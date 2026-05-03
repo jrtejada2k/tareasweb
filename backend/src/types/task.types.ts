@@ -79,6 +79,7 @@ export interface TaskSummaryDTO {
   start_date: string | null;
   end_date: string | null;
   completion_percentage: number;
+  project_name?: string | null;
   assigned_users?: number;
   has_subtasks?: boolean;
 }

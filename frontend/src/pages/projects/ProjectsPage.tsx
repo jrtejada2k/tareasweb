@@ -52,7 +52,7 @@ const ProjectsPage: React.FC = () => {
   const loadProjects = async () => {
     try {
       const response = await projectsService.getAll();
-      setProjects(response.projects || []);
+      setProjects(response.data || []);
     } catch (error) {
       console.error('Failed to load projects:', error);
       toast.error('Failed to load projects');

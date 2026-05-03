@@ -66,8 +66,8 @@ export const createTask = async (
       priority: data.priority || TaskPriority.MEDIUM,
       start_date: data.start_date ? new Date(data.start_date) : null,
       end_date: data.end_date ? new Date(data.end_date) : null,
-      estimated_hours: data.estimated_hours || null,
-      actual_hours: null,
+      estimated_hours: data.estimated_hours ?? 0,
+      actual_hours: 0,
       completion_percentage: 0,
       created_by: userId,
     };
@@ -427,8 +427,9 @@ export const listTasks = async (
 
     // Get tasks
     const tasksResult = await query<Task>(
-      `SELECT t.*
+      `SELECT t.*, p.name as project_name
        FROM tasks t
+       LEFT JOIN projects p ON p.id = t.project_id
        ${whereClause}
        ORDER BY t.created_at DESC
        LIMIT $${paramIndex++} OFFSET $${paramIndex++}`,

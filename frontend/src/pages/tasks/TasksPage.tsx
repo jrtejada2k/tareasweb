@@ -113,7 +113,7 @@ const TasksPage: React.FC = () => {
       if (!isMaster && assignedToMe) params.assigned_to_me = 'true';
 
       const response = await tasksService.getAll(params);
-      setTasks(response.tasks || []);
+      setTasks(response.data || []);
       if (response.pagination) {
         setTotalPages(response.pagination.totalPages ?? 1);
         setCurrentPage(response.pagination.page ?? page);
@@ -130,7 +130,7 @@ const TasksPage: React.FC = () => {
     try {
       const { projectsService } = await import('../../services/api');
       const response = await projectsService.getAll();
-      setProjects(response.projects || []);
+      setProjects(response.data || []);
     } catch (error) {
       console.error('Failed to load projects:', error);
     }
@@ -192,7 +192,13 @@ const TasksPage: React.FC = () => {
     }
 
     try {
-      await tasksService.create(formData);
+      const payload = {
+        ...formData,
+        start_date: formData.start_date || undefined,
+        end_date: formData.end_date || undefined,
+        description: formData.description || undefined,
+      };
+      await tasksService.create(payload);
       toast.success('Task created successfully!');
       handleCloseDialog();
       loadTasks(currentPage);

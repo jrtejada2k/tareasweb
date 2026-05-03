@@ -30,23 +30,26 @@ apiClient.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
 
-    // If 401 and not already retried, try to refresh token
-    if (error.response?.status === 401 && !originalRequest._retry) {
+    // Only block refresh on the refresh endpoint itself (prevents infinite loop)
+    const isRefreshEndpoint = originalRequest.url?.includes('/auth/refresh');
+    if (error.response?.status === 401 && !originalRequest._retry && !isRefreshEndpoint) {
       originalRequest._retry = true;
 
       try {
         await authService.refreshToken();
         return apiClient(originalRequest);
       } catch (refreshError) {
-        // Refresh failed, redirect to login
         window.location.href = '/login';
         return Promise.reject(refreshError);
       }
     }
 
-    // Show error toast
-    const errorMessage = error.response?.data?.message || 'An error occurred';
-    toast.error(errorMessage);
+    // Suppress toast for expected 401s (unauthenticated /auth/me on first load, failed refresh)
+    const isAuthEndpoint = originalRequest.url?.includes('/auth/');
+    if (!(error.response?.status === 401 && isAuthEndpoint)) {
+      const errorMessage = error.response?.data?.message || 'An error occurred';
+      toast.error(errorMessage);
+    }
 
     return Promise.reject(error);
   }
@@ -80,7 +83,8 @@ export const authService = {
 
   getCurrentUser: async () => {
     const response = await apiClient.get('/auth/me');
-    return response.data;
+    // /auth/me returns { success, user: userProfile }
+    return response.data.user ?? response.data;
   },
 };
 
@@ -136,8 +140,10 @@ export const tasksService = {
     return response.data;
   },
 
-  getById: async (id: string) => {
-    const response = await apiClient.get(`/tasks/${id}`);
+  getById: async (id: string, includeSubtasks = false) => {
+    const response = await apiClient.get(`/tasks/${id}`, {
+      params: includeSubtasks ? { include_subtasks: 'true' } : {},
+    });
     return response.data;
   },
 
@@ -181,7 +187,7 @@ export const tasksService = {
   },
 
   assignUser: async (taskId: string, userId: string) => {
-    const response = await apiClient.post(`/tasks/${taskId}/assign`, { user_id: userId });
+    const response = await apiClient.post(`/tasks/${taskId}/assign-user`, { userId });
     return response.data;
   },
 };

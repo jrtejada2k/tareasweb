@@ -21,16 +21,16 @@ interface Task {
   title: string;
   status: string;
   priority: 'low' | 'medium' | 'high' | 'critical';
-  deadline: string;
+  end_date?: string | null;
   project_name?: string;
 }
 
 interface CalendarData {
-  calendar: Record<string, Task[]>;
-  summary: {
-    total_tasks: number;
+  calendar_tasks: Record<string, Task[]>;
+  statistics: {
+    total_assigned_tasks: number;
     completed_tasks: number;
-    pending_tasks: number;
+    tasks_due_soon: number;
   };
 }
 
@@ -59,11 +59,11 @@ const CalendarView: React.FC = () => {
       console.error('Failed to load calendar data:', error);
       // Set empty calendar data on error
       setCalendarData({
-        calendar: {},
-        summary: {
-          total_tasks: 0,
+        calendar_tasks: {},
+        statistics: {
+          total_assigned_tasks: 0,
           completed_tasks: 0,
-          pending_tasks: 0,
+          tasks_due_soon: 0,
         },
       });
     } finally {
@@ -84,7 +84,7 @@ const CalendarView: React.FC = () => {
   const getTasksForDate = (date: Date): Task[] => {
     if (!calendarData) return [];
     const dateStr = format(date, 'yyyy-MM-dd');
-    return calendarData.calendar[dateStr] || [];
+    return calendarData.calendar_tasks[dateStr] || [];
   };
 
   const getTileContent = ({ date }: { date: Date }) => {
@@ -151,17 +151,17 @@ const CalendarView: React.FC = () => {
         {calendarData && (
           <Box display="flex" gap={2} mb={2}>
             <Chip
-              label={`Total: ${calendarData.summary.total_tasks}`}
+              label={`Total: ${calendarData.statistics.total_assigned_tasks}`}
               color="primary"
               variant="outlined"
             />
             <Chip
-              label={`Completed: ${calendarData.summary.completed_tasks}`}
+              label={`Completed: ${calendarData.statistics.completed_tasks}`}
               color="success"
               variant="outlined"
             />
             <Chip
-              label={`Pending: ${calendarData.summary.pending_tasks}`}
+              label={`Due Soon: ${calendarData.statistics.tasks_due_soon}`}
               color="warning"
               variant="outlined"
             />

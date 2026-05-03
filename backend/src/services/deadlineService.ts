@@ -335,8 +335,8 @@ export const getRequests = async (
          t.status as task_status,
          t.project_id,
          p.name as project_name,
-         u1.username as requester_name,
-         u2.username as reviewer_name
+         u1.full_name as requester_name,
+         u2.full_name as reviewer_name
        FROM deadline_requests dr
        JOIN tasks t ON t.id = dr.task_id
        JOIN projects p ON p.id = t.project_id
@@ -382,8 +382,8 @@ export const getRequestById = async (
          t.status as task_status,
          t.project_id,
          p.name as project_name,
-         u1.username as requester_name,
-         u2.username as reviewer_name
+         u1.full_name as requester_name,
+         u2.full_name as reviewer_name
        FROM deadline_requests dr
        JOIN tasks t ON t.id = dr.task_id
        JOIN projects p ON p.id = t.project_id

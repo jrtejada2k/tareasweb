@@ -33,25 +33,26 @@ import {
 } from '@mui/icons-material';
 import { toast } from 'react-toastify';
 import { useAuth } from '../../contexts/AuthContext';
-import { projectsService } from '../../services/api';
-import { tasksService } from '../../services/api';
+import { projectsService, tasksService } from '../../services/api';
+import { assignmentsService } from '../../services/assignmentsService';
 import UserAssignmentPanel from '../../components/assignments/UserAssignmentPanel';
 
 interface Project {
   id: string;
   name: string;
-  description: string;
+  description: string | null;
   status: 'active' | 'archived' | 'completed';
-  start_date: string;
-  end_date: string;
+  start_date: string | null;
+  end_date: string | null;
   created_by: string;
   created_at: string;
   updated_at: string;
-  assigned_users?: Array<{
-    id: string;
-    full_name: string;
-    email: string;
-  }>;
+}
+
+interface AssignedUser {
+  id: string;
+  full_name: string;
+  email: string;
 }
 
 interface Task {
@@ -59,8 +60,7 @@ interface Task {
   title: string;
   status: string;
   priority: string;
-  deadline: string;
-  assigned_users?: Array<{ full_name: string }>;
+  end_date: string | null;
 }
 
 const ProjectDetailPage: React.FC = () => {
@@ -68,14 +68,24 @@ const ProjectDetailPage: React.FC = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [project, setProject] = useState<Project | null>(null);
+  const [assignedUsers, setAssignedUsers] = useState<AssignedUser[]>([]);
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [addTaskDialogOpen, setAddTaskDialogOpen] = useState(false);
   const [editForm, setEditForm] = useState({
     name: '',
     description: '',
     status: 'active' as 'active' | 'archived' | 'completed',
+    start_date: '',
+    end_date: '',
+  });
+  const [taskForm, setTaskForm] = useState({
+    title: '',
+    description: '',
+    status: 'not_started',
+    priority: 'medium',
     start_date: '',
     end_date: '',
   });
@@ -85,19 +95,20 @@ const ProjectDetailPage: React.FC = () => {
   useEffect(() => {
     loadProject();
     loadProjectTasks();
+    loadAssignedUsers();
   }, [id]);
 
   const loadProject = async () => {
     try {
       setLoading(true);
       const response = await projectsService.getById(id!);
-      setProject(response.project);
+      setProject(response.data);
       setEditForm({
-        name: response.project.name,
-        description: response.project.description,
-        status: response.project.status,
-        start_date: response.project.start_date.split('T')[0],
-        end_date: response.project.end_date.split('T')[0],
+        name: response.data.name,
+        description: response.data.description || '',
+        status: response.data.status,
+        start_date: response.data.start_date ? response.data.start_date.split('T')[0] : '',
+        end_date: response.data.end_date ? response.data.end_date.split('T')[0] : '',
       });
     } catch (error: any) {
       toast.error(error.response?.data?.message || 'Failed to load project');
@@ -106,10 +117,24 @@ const ProjectDetailPage: React.FC = () => {
     }
   };
 
+  const loadAssignedUsers = async () => {
+    try {
+      const response = await assignmentsService.getProjectUsers(id!);
+      const users: AssignedUser[] = (response.data || []).map((a: any) => ({
+        id: a.user_id,
+        full_name: a.user_full_name,
+        email: a.user_email,
+      }));
+      setAssignedUsers(users);
+    } catch {
+      // non-critical
+    }
+  };
+
   const loadProjectTasks = async () => {
     try {
       const response = await tasksService.getAll({ project_id: id });
-      setTasks(response.tasks);
+      setTasks(response.data || []);
     } catch (error: any) {
       toast.error(error.response?.data?.message || 'Failed to load tasks');
     }
@@ -117,7 +142,13 @@ const ProjectDetailPage: React.FC = () => {
 
   const handleEditSubmit = async () => {
     try {
-      await projectsService.update(id!, editForm);
+      const payload = {
+        ...editForm,
+        start_date: editForm.start_date || undefined,
+        end_date: editForm.end_date || undefined,
+        description: editForm.description || undefined,
+      };
+      await projectsService.update(id!, payload);
       toast.success('Project updated successfully');
       setEditDialogOpen(false);
       loadProject();
@@ -136,31 +167,43 @@ const ProjectDetailPage: React.FC = () => {
     }
   };
 
+  const handleAddTaskSubmit = async () => {
+    try {
+      const payload = {
+        project_id: id!,
+        title: taskForm.title,
+        description: taskForm.description || undefined,
+        status: taskForm.status,
+        priority: taskForm.priority,
+        start_date: taskForm.start_date || undefined,
+        end_date: taskForm.end_date || undefined,
+      };
+      await tasksService.create(payload);
+      toast.success('Task created successfully');
+      setAddTaskDialogOpen(false);
+      setTaskForm({ title: '', description: '', status: 'not_started', priority: 'medium', start_date: '', end_date: '' });
+      loadProjectTasks();
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || 'Failed to create task');
+    }
+  };
+
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'active':
-        return 'success';
-      case 'archived':
-        return 'default';
-      case 'completed':
-        return 'primary';
-      default:
-        return 'default';
+      case 'active': return 'success';
+      case 'archived': return 'default';
+      case 'completed': return 'primary';
+      default: return 'default';
     }
   };
 
   const getPriorityColor = (priority: string) => {
     switch (priority) {
-      case 'critical':
-        return 'error';
-      case 'high':
-        return 'warning';
-      case 'medium':
-        return 'info';
-      case 'low':
-        return 'default';
-      default:
-        return 'default';
+      case 'critical': return 'error';
+      case 'high': return 'warning';
+      case 'medium': return 'info';
+      case 'low': return 'default';
+      default: return 'default';
     }
   };
 
@@ -224,7 +267,7 @@ const ProjectDetailPage: React.FC = () => {
                 Description
               </Typography>
               <Typography variant="body1" paragraph>
-                {project.description}
+                {project.description || '—'}
               </Typography>
 
               <Grid container spacing={2} mt={1}>
@@ -233,7 +276,7 @@ const ProjectDetailPage: React.FC = () => {
                     Start Date
                   </Typography>
                   <Typography variant="body1">
-                    {new Date(project.start_date).toLocaleDateString()}
+                    {project.start_date ? new Date(project.start_date).toLocaleDateString() : '—'}
                   </Typography>
                 </Grid>
                 <Grid item xs={6}>
@@ -241,7 +284,7 @@ const ProjectDetailPage: React.FC = () => {
                     End Date
                   </Typography>
                   <Typography variant="body1">
-                    {new Date(project.end_date).toLocaleDateString()}
+                    {project.end_date ? new Date(project.end_date).toLocaleDateString() : '—'}
                   </Typography>
                 </Grid>
                 <Grid item xs={6}>
@@ -268,13 +311,15 @@ const ProjectDetailPage: React.FC = () => {
           <Paper sx={{ p: 3 }}>
             <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
               <Typography variant="h6">Tasks ({tasks.length})</Typography>
-              <Button
-                variant="contained"
-                startIcon={<AddIcon />}
-                onClick={() => navigate('/tasks')}
-              >
-                Add Task
-              </Button>
+              {isMaster && (
+                <Button
+                  variant="contained"
+                  startIcon={<AddIcon />}
+                  onClick={() => setAddTaskDialogOpen(true)}
+                >
+                  Add Task
+                </Button>
+              )}
             </Box>
             <TableContainer>
               <Table>
@@ -283,14 +328,13 @@ const ProjectDetailPage: React.FC = () => {
                     <TableCell>Title</TableCell>
                     <TableCell>Status</TableCell>
                     <TableCell>Priority</TableCell>
-                    <TableCell>Deadline</TableCell>
-                    <TableCell>Assigned To</TableCell>
+                    <TableCell>End Date</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
                   {tasks.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={5} align="center">
+                      <TableCell colSpan={4} align="center">
                         No tasks found
                       </TableCell>
                     </TableRow>
@@ -314,10 +358,7 @@ const ProjectDetailPage: React.FC = () => {
                           />
                         </TableCell>
                         <TableCell>
-                          {new Date(task.deadline).toLocaleDateString()}
-                        </TableCell>
-                        <TableCell>
-                          {task.assigned_users?.map((u) => u.full_name).join(', ') || 'Unassigned'}
+                          {task.end_date ? new Date(task.end_date).toLocaleDateString() : '—'}
                         </TableCell>
                       </TableRow>
                     ))
@@ -334,9 +375,9 @@ const ProjectDetailPage: React.FC = () => {
             <UserAssignmentPanel
               resourceId={project.id}
               resourceType="project"
-              assignedUsers={project.assigned_users || []}
+              assignedUsers={assignedUsers}
               canManage={isMaster}
-              onAssignmentChange={loadProject}
+              onAssignmentChange={loadAssignedUsers}
             />
           </Paper>
         </Grid>
@@ -400,6 +441,80 @@ const ProjectDetailPage: React.FC = () => {
           <Button onClick={() => setEditDialogOpen(false)}>Cancel</Button>
           <Button onClick={handleEditSubmit} variant="contained">
             Save Changes
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Add Task Dialog */}
+      <Dialog open={addTaskDialogOpen} onClose={() => setAddTaskDialogOpen(false)} maxWidth="sm" fullWidth>
+        <DialogTitle>Add Task to {project.name}</DialogTitle>
+        <DialogContent>
+          <Box display="flex" flexDirection="column" gap={2} mt={1}>
+            <TextField
+              label="Title"
+              fullWidth
+              required
+              value={taskForm.title}
+              onChange={(e) => setTaskForm({ ...taskForm, title: e.target.value })}
+            />
+            <TextField
+              label="Description"
+              fullWidth
+              multiline
+              rows={3}
+              value={taskForm.description}
+              onChange={(e) => setTaskForm({ ...taskForm, description: e.target.value })}
+            />
+            <FormControl fullWidth>
+              <InputLabel>Status</InputLabel>
+              <Select
+                value={taskForm.status}
+                label="Status"
+                onChange={(e) => setTaskForm({ ...taskForm, status: e.target.value })}
+              >
+                <MenuItem value="not_started">Not Started</MenuItem>
+                <MenuItem value="iniciada">Iniciada</MenuItem>
+                <MenuItem value="en_progreso">En Progreso</MenuItem>
+                <MenuItem value="completada">Completada</MenuItem>
+                <MenuItem value="blocked">Blocked</MenuItem>
+                <MenuItem value="cancelled">Cancelled</MenuItem>
+              </Select>
+            </FormControl>
+            <FormControl fullWidth>
+              <InputLabel>Priority</InputLabel>
+              <Select
+                value={taskForm.priority}
+                label="Priority"
+                onChange={(e) => setTaskForm({ ...taskForm, priority: e.target.value })}
+              >
+                <MenuItem value="low">Low</MenuItem>
+                <MenuItem value="medium">Medium</MenuItem>
+                <MenuItem value="high">High</MenuItem>
+                <MenuItem value="critical">Critical</MenuItem>
+              </Select>
+            </FormControl>
+            <TextField
+              label="Start Date"
+              type="date"
+              fullWidth
+              InputLabelProps={{ shrink: true }}
+              value={taskForm.start_date}
+              onChange={(e) => setTaskForm({ ...taskForm, start_date: e.target.value })}
+            />
+            <TextField
+              label="End Date"
+              type="date"
+              fullWidth
+              InputLabelProps={{ shrink: true }}
+              value={taskForm.end_date}
+              onChange={(e) => setTaskForm({ ...taskForm, end_date: e.target.value })}
+            />
+          </Box>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setAddTaskDialogOpen(false)}>Cancel</Button>
+          <Button onClick={handleAddTaskSubmit} variant="contained" disabled={!taskForm.title}>
+            Create Task
           </Button>
         </DialogActions>
       </Dialog>

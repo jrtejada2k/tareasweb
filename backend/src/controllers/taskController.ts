@@ -283,6 +283,7 @@ export const list = asyncHandler(async (req: Request, res: Response): Promise<vo
     start_date: task.start_date ? task.start_date.toISOString() : null,
     end_date: task.end_date ? task.end_date.toISOString() : null,
     completion_percentage: task.completion_percentage,
+    project_name: (task as any).project_name ?? null,
   }));
 
   res.status(200).json({

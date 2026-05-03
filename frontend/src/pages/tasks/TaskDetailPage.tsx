@@ -34,6 +34,7 @@ import {
 import { toast } from 'react-toastify';
 import { useAuth } from '../../contexts/AuthContext';
 import { tasksService, timeEntriesService, deadlineRequestsService } from '../../services/api';
+import { assignmentsService } from '../../services/assignmentsService';
 import UserAssignmentPanel from '../../components/assignments/UserAssignmentPanel';
 
 interface Task {
@@ -91,6 +92,7 @@ const TaskDetailPage: React.FC = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [task, setTask] = useState<Task | null>(null);
+  const [assignedUsers, setAssignedUsers] = useState<Array<{id: string; full_name: string; email: string}>>([]);
   const [loading, setLoading] = useState(true);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -139,21 +141,36 @@ const TaskDetailPage: React.FC = () => {
     loadTask();
     loadTimeEntries();
     loadDeadlineRequests();
+    loadAssignedUsers();
   }, [id]);
+
+  const loadAssignedUsers = async () => {
+    try {
+      const response = await assignmentsService.getTaskUsers(id!);
+      const users = (response.data || []).map((a: any) => ({
+        id: a.user_id,
+        full_name: a.user_full_name,
+        email: a.user_email,
+      }));
+      setAssignedUsers(users);
+    } catch {
+      // non-critical
+    }
+  };
 
   const loadTask = async () => {
     try {
       setLoading(true);
-      const response = await tasksService.getById(id!);
-      setTask(response.task);
-      setNewStatus(response.task.status);
+      const response = await tasksService.getById(id!, true);
+      setTask(response.data);
+      setNewStatus(response.data.status);
       setEditForm({
-        title: response.task.title,
-        description: response.task.description,
-        priority: response.task.priority,
-        start_date: response.task.start_date ? response.task.start_date.split('T')[0] : '',
-        end_date: response.task.end_date ? response.task.end_date.split('T')[0] : '',
-        estimated_hours: response.task.estimated_hours,
+        title: response.data.title,
+        description: response.data.description,
+        priority: response.data.priority,
+        start_date: response.data.start_date ? response.data.start_date.split('T')[0] : '',
+        end_date: response.data.end_date ? response.data.end_date.split('T')[0] : '',
+        estimated_hours: response.data.estimated_hours,
       });
     } catch (error: any) {
       toast.error(error.response?.data?.message || 'Failed to load task');
@@ -184,10 +201,10 @@ const TaskDetailPage: React.FC = () => {
     try {
       await tasksService.update(id!, {
         title: editForm.title,
-        description: editForm.description,
+        description: editForm.description || undefined,
         priority: editForm.priority,
-        start_date: editForm.start_date,
-        end_date: editForm.end_date,
+        start_date: editForm.start_date || undefined,
+        end_date: editForm.end_date || undefined,
       });
       toast.success('Task updated successfully');
       setEditDialogOpen(false);
@@ -647,9 +664,9 @@ const TaskDetailPage: React.FC = () => {
             <UserAssignmentPanel
               resourceId={task.id}
               resourceType="task"
-              assignedUsers={task.assigned_users || []}
+              assignedUsers={assignedUsers}
               canManage={isMaster}
-              onAssignmentChange={loadTask}
+              onAssignmentChange={loadAssignedUsers}
             />
           </Paper>
         </Grid>

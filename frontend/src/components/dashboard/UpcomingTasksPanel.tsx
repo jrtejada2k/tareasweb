@@ -24,7 +24,7 @@ interface Task {
   title: string;
   status: string;
   priority: 'low' | 'medium' | 'high' | 'critical';
-  deadline: string;
+  end_date: string | null;
   project_name?: string;
 }
 
@@ -42,17 +42,17 @@ const UpcomingTasksPanel: React.FC = () => {
       setLoading(true);
       // Get all tasks and filter for upcoming ones
       const response = await tasksService.getAll({});
-      const allTasks = response.tasks || [];
+      const allTasks = response.data || [];
       
       // Filter for non-completed tasks with upcoming deadlines
       const upcoming = allTasks
-        .filter((task: Task) => 
+        .filter((task: Task) =>
           task.status !== 'completada' &&
           task.status !== 'cancelled' &&
-          new Date(task.deadline) >= new Date()
+          task.end_date != null
         )
-        .sort((a: Task, b: Task) => 
-          new Date(a.deadline).getTime() - new Date(b.deadline).getTime()
+        .sort((a: Task, b: Task) =>
+          new Date(a.end_date!).getTime() - new Date(b.end_date!).getTime()
         )
         .slice(0, 10); // Show top 10 upcoming tasks
       
@@ -85,11 +85,12 @@ const UpcomingTasksPanel: React.FC = () => {
     return status.replace(/_/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase());
   };
 
-  const isOverdue = (deadline: string) => {
-    return new Date(deadline) < new Date();
+  const isOverdue = (deadline: string | null) => {
+    return deadline ? new Date(deadline) < new Date() : false;
   };
 
-  const isDueSoon = (deadline: string) => {
+  const isDueSoon = (deadline: string | null) => {
+    if (!deadline) return false;
     const daysUntilDeadline = Math.ceil(
       (new Date(deadline).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24)
     );
@@ -134,7 +135,7 @@ const UpcomingTasksPanel: React.FC = () => {
                           color={getPriorityColor(task.priority)}
                         />
                         <Chip label={formatStatus(task.status)} size="small" />
-                        {isOverdue(task.deadline) && (
+                        {isOverdue(task.end_date!) && (
                           <Chip
                             icon={<WarningIcon />}
                             label="Overdue"
@@ -142,7 +143,7 @@ const UpcomingTasksPanel: React.FC = () => {
                             color="error"
                           />
                         )}
-                        {!isOverdue(task.deadline) && isDueSoon(task.deadline) && (
+                        {!isOverdue(task.end_date!) && isDueSoon(task.end_date!) && (
                           <Chip
                             icon={<TimeIcon />}
                             label="Due Soon"
@@ -160,7 +161,7 @@ const UpcomingTasksPanel: React.FC = () => {
                           </Typography>
                         )}
                         <Typography variant="caption" color="text.secondary">
-                          Due {formatDistanceToNow(new Date(task.deadline), { addSuffix: true })}
+                          Due {formatDistanceToNow(new Date(task.end_date!), { addSuffix: true })}
                         </Typography>
                       </Box>
                     }
